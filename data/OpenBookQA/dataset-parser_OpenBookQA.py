@@ -53,7 +53,7 @@ def source_to_processed_jsonl(source_path: str = "source/", output_path: str = "
         dataset = dataset.remove_columns(["choices"])
 
         if "add" in name:
-            dataset = dataset.rename_column("fact1", "Text_Answer")
+            dataset = dataset.rename_column("fact1", "Supporting_Fact")
             dataset = dataset.rename_column("humanScore", "Human_Score")
             dataset = dataset.rename_column("clarity", "Clarity_Score")
             dataset = dataset.remove_columns(["turkIdAnonymized"])
@@ -66,7 +66,7 @@ def zero_shot_conversation_prompt_to_jsonl(loaded_prompt : dict, dataset_file : 
         populated_prompts = []
 
         for entry in dataset:
-            iter_prompt = copy.deepcopy(loaded_prompt)["messages"]
+            iter_prompt = copy.deepcopy(loaded_prompt)["messages"] if "main" in dataset_file[0] else copy.deepcopy(loaded_prompt)["messages_add"]
 
             for message in iter_prompt:
                 if message['content']:
@@ -77,7 +77,8 @@ def zero_shot_conversation_prompt_to_jsonl(loaded_prompt : dict, dataset_file : 
             # If example is not training, delete the last assistant message, because we don't want to prompt the model with an answer
             if "train" not in dataset_file[0] and iter_prompt[-1]['role'] == 'assistant':
                 iter_prompt.pop(-1)
-            populated_prompts.append({"messages" : iter_prompt})
+
+            populated_prompts.append({"id" : entry["id"], "messages" : iter_prompt, "Label" : entry["Label"]})
 
     # Write the populated prompts to the output file
     with open(output_file, 'w', encoding='utf-8') as f_out:
@@ -98,23 +99,23 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--source_folder", default="source/", type=str)
     parser.add_argument("--output_folder", default="processed/", type=str)
-    parser.add_argument('--prompt', default='../../prompts/OpenBookQA/main/OpenBookQA_main_conversation_llama3.yaml', type=str)
+    parser.add_argument('--prompt', default='../../prompts/OpenBookQA/OpenBookQA_0-shot_llama3.yaml', type=str)
     
     # 'source/add_test.jsonl', 'source/main_dev.jsonl', 'source/add_dev.jsonl']
     parser.add_argument('--dataset_file', default='processed/main_test.jsonl', type=str)
-    parser.add_argument('--output_file', default='inference/0-shot/0-shot_main_conversation_test.jsonl', type=str)
+    parser.add_argument('--output_file', default='inference/0-shot/0-shot_main_test.jsonl', type=str)
 
     parser.add_argument('--task', 
-                        choices=['source_to_jsonl, source_to_processed_jsonl', 
+                        choices=['source_to_jsonl', 'source_to_processed_jsonl', 
                                  'yaml_prompt_to_jsonl'], 
                         default='yaml_prompt_to_jsonl', type=str)
     args = parser.parse_args()
 
     match args.task:
         case 'source_to_jsonl':
-            source_to_jsonl()
+            source_to_jsonl(args.source_folder)
         case 'source_to_processed_jsonl':
-            source_to_processed_jsonl()
+            source_to_processed_jsonl(args.source_folder, args.output_folder)
         case 'yaml_prompt_to_jsonl':
             yaml_prompt_to_jsonl(args.prompt, args.dataset_file, args.output_file)
         case _:
