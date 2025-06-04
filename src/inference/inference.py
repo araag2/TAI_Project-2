@@ -1,8 +1,11 @@
+import multiprocessing as mp
 import argparse
 import json
 import torch
 import random
 import os
+os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
+
 from datetime import datetime
 
 # Model Libs
@@ -37,44 +40,49 @@ def inference_OpenBookQA(args : argparse.Namespace):
         temperature=args.temperature,
         top_k=args.top_k,
         top_p=args.top_p,
-        #max_tokens=args.max_new_tokens,
+        max_tokens=args.max_new_tokens,
+        seed= args.random_seed,
         #num_return_sequences=args.num_return_sequences,
         guided_decoding= GuidedDecodingParams(
             choice=['A', 'B', 'C', 'D'])
+            
+        #guided_decoding="regex",
+        #guided_decoding_regex=r"\*\*Answer:\*\* [A-D]"
     )
 
     model = LLM(model=args.model)
 
     outputs = model.generate(dataset["messages"], 
-                            sampling_params=sampling_config, 
-                            batch_size=args.batch_size
+                            sampling_params=sampling_config
     )
 
-    output_res = [{'id' : output.id, 'Prompt': output.prompt, 'Answer': output.outputs[0].text} for output in outputs]
+    print(outputs[0])
+
+    output_res = [{'Prompt': output.prompt, 'Answer': output.outputs[0].text} for output in outputs]
 
     with safe_open_w(f"{args.output_dir}{args.exp_name}.jsonl") as output_file:
         for output in output_res:
-            output_file.write(json.dumps(output, ensure_ascii=False, indent=4) + '\n')
+            output_file.write(json.dumps(output, ensure_ascii=False) + '\n')
 
 def main():
+    mp.set_start_method("spawn", force=True)
     parser = argparse.ArgumentParser()
 
     # Model and checkpoint paths
     parser.add_argument('--model', type=str, help='name of the model used to generate and combine prompts', default='meta-llama/Llama-3.2-3B-Instruct')
-    parser.add_argument('--exp_name', type=str, help='name of the experiment', default='OpenBookQA/0-shot/llama3/test_0-shot_conversation')
+    # Merge Params
+    parser.add_argument('--checkpoint', type=str, help='path to model checkpoint, used if merging', default="")
+
+    parser.add_argument('--exp_name', type=str, help='name of the experiment', default='')
 
     #Very important, or it won't work with our formatting
     parser.add_argument('--dataset', type=str, help='dataset / experiment ran', default='OpenBookQA',
     choices=["OpenBookQA"])
-
-    # Merge Params
-    parser.add_argument('--checkpoint', type=str, help='path to model checkpoint, used if merging', default="")
+    parser.add_argument('--data', type=str, help='path to file with data used to perform inference', default='../../data/OpenBookQA/inference/0-shot/0-shot_main_test.jsonl')
 
     # Path to queries, qrels and prompt files
     #parser.add_argument('--used_set', type=str, help='choose which data to use', default='') # train | dev | test
-    args = parser.parse_known_args()
-
-    parser.add_argument('--data', type=str, help='path to file with data used to perform inference', default='../../data/OpenBookQA/inference/0-shot/0-shot_main_test.jsonl')
+    #args = parser.parse_known_args()
 
     # Generation Params
     parser.add_argument('--batch_size', type=int, help='batch_size of generated examples', default=8)
@@ -89,19 +97,17 @@ def main():
     parser.add_argument('--top_p', type=float, default=0.95)
     parser.add_argument('--num_return_sequences', type=int, default=1)  
 
-    # Output directory
-    parser.add_argument('--output_dir', type=str, help='path to output_dir', default="outputs/")
-
     # Random Seed
     parser.add_argument('--random_seed', type=int, default=0)
 
+    # Output directory
+    parser.add_argument('--output_dir', type=str, help='path to output_dir', default="outputs/")
     args = parser.parse_args()
 
     # Control Randomness for Reproducibility experiments
     set_random_seed(args.random_seed)
 
-    model = None
-
+    #model = None
     #if args.checkpoint != "":
     #    model = AutoModelForCausalLM.from_pretrained(args.model, device_map= {"": 0}, torch_dtype=torch.bfloat16,attn_implementation="flash_attention_2")
     #    model = PeftModel.from_pretrained(model, args.checkpoint, device_map= {"": 0}, torch_dtype=torch.bfloat16,attn_implementation="flash_attention_2")

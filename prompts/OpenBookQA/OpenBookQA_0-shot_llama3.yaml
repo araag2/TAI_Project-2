@@ -18,6 +18,7 @@ messages:
       D) {{Option_D}}
 
       Please provide your answer in the format of a single letter (A, B, C, or D) corresponding to the correct option.
+
   - role: assistant
     content: |
       **Answer:** {{Label}}

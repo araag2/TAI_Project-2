@@ -53,7 +53,7 @@ def source_to_processed_jsonl(source_path: str = "source/", output_path: str = "
         dataset = dataset.remove_columns(["choices"])
 
         if "add" in name:
-            dataset = dataset.rename_column("fact1", "Supporting_Fact")
+            dataset = dataset.rename_column("fact1", "Support_Fact")
             dataset = dataset.rename_column("humanScore", "Human_Score")
             dataset = dataset.rename_column("clarity", "Clarity_Score")
             dataset = dataset.remove_columns(["turkIdAnonymized"])
@@ -66,7 +66,7 @@ def zero_shot_conversation_prompt_to_jsonl(loaded_prompt : dict, dataset_file : 
         populated_prompts = []
 
         for entry in dataset:
-            iter_prompt = copy.deepcopy(loaded_prompt)["messages"] if "main" in dataset_file[0] else copy.deepcopy(loaded_prompt)["messages_add"]
+            iter_prompt = copy.deepcopy(loaded_prompt)["messages"] if "main" in dataset_file else copy.deepcopy(loaded_prompt)["messages_add"]
 
             for message in iter_prompt:
                 if message['content']:
@@ -75,7 +75,7 @@ def zero_shot_conversation_prompt_to_jsonl(loaded_prompt : dict, dataset_file : 
                 
 
             # If example is not training, delete the last assistant message, because we don't want to prompt the model with an answer
-            if "train" not in dataset_file[0] and iter_prompt[-1]['role'] == 'assistant':
+            if "train" not in dataset_file and iter_prompt[-1]['role'] == 'assistant':
                 iter_prompt.pop(-1)
 
             populated_prompts.append({"id" : entry["id"], "messages" : iter_prompt, "Label" : entry["Label"]})
