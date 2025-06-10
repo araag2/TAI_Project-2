@@ -18,12 +18,12 @@ OUTPUT_DIR=outputs/training/OpenBookQA/llama3/0-shot/add/
 
 # Data Files split by ":" where the first part is the experience name, and the second part is the path to the data file
 DATA_FILES=(
-  #"training_0-shot_OpenBookQA_llama3_main-train:data/OpenBookQA/inference/0-shot/0-shot_main_train.jsonl"
-  "training_0-shot-add_OpenBookQA_llama3_main-dev:data/OpenBookQA/inference/0-shot/0-shot_main_dev.jsonl"
-  "training_0-shot-add_OpenBookQA_llama3_main-test:data/OpenBookQA/inference/0-shot/0-shot_main_test.jsonl"
-  #"training_0-shot_OpenBookQA_llama3_add-train:data/OpenBookQA/inference/0-shot/0-shot_add_train.jsonl"
-  "training_0-shot-add_OpenBookQA_llama3_add-dev:data/OpenBookQA/inference/0-shot/0-shot_add_dev.jsonl"
-  "training_0-shot-add_OpenBookQA_llama3_add-test:data/OpenBookQA/inference/0-shot/0-shot_add_test.jsonl"
+  #"training_0-shot_OpenBookQA_llama3_main-train:data/OpenBookQA/inference/0-shot/0-shot_main-train.jsonl"
+  "training_0-shot-add_OpenBookQA_llama3_main-dev:data/OpenBookQA/inference/0-shot/0-shot_main-dev.jsonl"
+  "training_0-shot-add_OpenBookQA_llama3_main-test:data/OpenBookQA/inference/0-shot/0-shot_main-test.jsonl"
+  #"training_0-shot_OpenBookQA_llama3_add-train:data/OpenBookQA/inference/0-shot/0-shot_add-train.jsonl"
+  "training_0-shot-add_OpenBookQA_llama3_add-dev:data/OpenBookQA/inference/0-shot/0-shot_add-dev.jsonl"
+  "training_0-shot-add_OpenBookQA_llama3_add-test:data/OpenBookQA/inference/0-shot/0-shot_add-test.jsonl"
 )
 
 echo -e "-------------------------------\n"

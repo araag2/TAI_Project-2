@@ -22,14 +22,14 @@ def source_to_jsonl(source_path: str = "source/"):
     add_dev = load_dataset("parquet", data_files=f"{source_path}add_dev.parquet", split="train")
 
     #output_to_jsonl
-    main_train.to_json(source_path + "main_train.jsonl")
-    add_train.to_json(source_path + "add_train.jsonl")
+    main_train.to_json(source_path + "main-train.jsonl")
+    add_train.to_json(source_path + "add-train.jsonl")
 
-    main_test.to_json(source_path + "main_test.jsonl")
-    add_test.to_json(source_path + "add_test.jsonl")
+    main_test.to_json(source_path + "main-test.jsonl")
+    add_test.to_json(source_path + "add-test.jsonl")
 
-    main_dev.to_json(source_path + "main_dev.jsonl")
-    add_dev.to_json(source_path + "add_dev.jsonl")
+    main_dev.to_json(source_path + "main-dev.jsonl")
+    add_dev.to_json(source_path + "add-dev.jsonl")
 
 key_to_option = {0 : "A", 1 : "B", 2 : "C", 3 : "D"}
 
@@ -45,7 +45,7 @@ def source_to_processed_jsonl(source_path: str = "source/", output_path: str = "
 
      # Columns names in the dataset [id, question_stem, choices [text, labels], answerKey] and ADD_ONLY [fact1, humanScore, clarity, turkIdAnonymized]
 
-    for name, dataset in zip(["main_train", "add_train", "main_test", "add_test", "main_dev", "add_dev"],
+    for name, dataset in zip(["main-train", "add-train", "main-test", "add-test", "main-dev", "add-dev"],
                              [main_train, add_train, main_test, add_test, main_dev, add_dev]):
         
         dataset = dataset.rename_column("question_stem", "Question")
@@ -179,8 +179,8 @@ def main():
     parser.add_argument('--prompt', default='../../prompts/OpenBookQA/OpenBookQA_2-shot_llama3.yaml', type=str)
     
     # 'source/add_test.jsonl', 'source/main_dev.jsonl', 'source/add_dev.jsonl']
-    parser.add_argument('--dataset_file', default='processed/main_test.jsonl', type=str)
-    parser.add_argument('--example_file', default='processed/main_train.jsonl', type=str)
+    parser.add_argument('--dataset_file', default='processed/main-test.jsonl', type=str)
+    parser.add_argument('--example_file', default='processed/main-train.jsonl', type=str)
     parser.add_argument('--output_file', default='inference/few-shot/2-shot_main_test.jsonl', type=str)
 
     parser.add_argument('--task', 

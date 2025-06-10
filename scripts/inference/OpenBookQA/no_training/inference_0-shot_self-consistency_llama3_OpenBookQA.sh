@@ -16,10 +16,10 @@ OUTPUT_DIR=outputs/no_training/OpenBookQA/llama3/0-shot_self-consistency/
 
 # Data Files split by ":" where the first part is the experience name, and the second part is the path to the data file
 DATA_FILES=(
-  "no-training_0-shot_self-consistency_OpenBookQA_llama3_main-dev:data/OpenBookQA/inference/0-shot/0-shot_main_dev.jsonl"
-  "no-training_0-shot_self-consistency_OpenBookQA_llama3_main-test:data/OpenBookQA/inference/0-shot/0-shot_main_test.jsonl"
-  "no-training_0-shot_self-consistency_OpenBookQA_llama3_add-dev:data/OpenBookQA/inference/0-shot/0-shot_add_dev.jsonl"
-  "no-training_0-shot_self-consistency_OpenBookQA_llama3_add-test:data/OpenBookQA/inference/0-shot/0-shot_add_test.jsonl"
+  "no-training_0-shot_self-consistency_OpenBookQA_llama3_main-dev:data/OpenBookQA/inference/0-shot/0-shot_main-dev.jsonl"
+  "no-training_0-shot_self-consistency_OpenBookQA_llama3_main-test:data/OpenBookQA/inference/0-shot/0-shot_main-test.jsonl"
+  "no-training_0-shot_self-consistency_OpenBookQA_llama3_add-dev:data/OpenBookQA/inference/0-shot/0-shot_add-dev.jsonl"
+  "no-training_0-shot_self-consistency_OpenBookQA_llama3_add-test:data/OpenBookQA/inference/0-shot/0-shot_add-test.jsonl"
 )
 
 echo -e "-------------------------------\n"

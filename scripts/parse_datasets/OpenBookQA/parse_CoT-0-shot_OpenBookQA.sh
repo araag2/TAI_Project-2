@@ -6,10 +6,10 @@ TASK=yaml_prompt_to_jsonl
 
 # Data Files split by ":" where the first part is the dataset file and the second part is the output file
 DATASETS=(
-  "main_test.jsonl:CoT-0-shot_main_test.jsonl"
-  "main_dev.jsonl:CoT-0-shot_main_dev.jsonl"
-  "add_test.jsonl:CoT-0-shot_add_test.jsonl"
-  "add_dev.jsonl:CoT-0-shot_add_dev.jsonl"
+  "main-test.jsonl:CoT-0-shot_main-test.jsonl"
+  "main-dev.jsonl:CoT-0-shot_main-dev.jsonl"
+  "add-test.jsonl:CoT-0-shot_add-test.jsonl"
+  "add-dev.jsonl:CoT-0-shot_add-dev.jsonl"
 )
 
 for pair in "${DATASETS[@]}"; do

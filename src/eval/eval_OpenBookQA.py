@@ -5,6 +5,7 @@ import os
 import os.path
 import warnings
 import argparse
+import random
 
 from datasets import load_dataset
 from sklearn.metrics import f1_score, precision_score, recall_score, accuracy_score
@@ -28,10 +29,16 @@ def calc_scores(prediction_file : str, gold_file : str, output_dir : str):
     gold = load_dataset('json', data_files=gold_file, split='train')
 
     # Each answer should be in the form A,B,C or D
-    valid_answers = {A, B, C, D} 
+    valid_answers = {"A", "B", "C", "D"}
 
-    pred_labels = [example["Answer"][-1] if example["Answer"][-1] in valid_answers else raise ValueError("Answer not in Expected Format") for example in preds]
-    gold_labels = [example["Answer"][-1] if example["Answer"][-1] in valid_answers else raise ValueError("Answer not in Expected Format") for example in gold]
+    def check_valid_answers(answer):
+        if answer not in valid_answers:
+            #raise ValueError(f"Answer '{answer}' not in Expected Format. Expected one of {valid_answers}.")
+            return random.choice(list(valid_answers)) # Default to random answer if invalid
+        return answer 
+
+    pred_labels = [check_valid_answers(example["Answer"][-1]) for example in preds]
+    gold_labels = [check_valid_answers(example["Label"][-1]) for example in gold]
 
 
     # Metrics

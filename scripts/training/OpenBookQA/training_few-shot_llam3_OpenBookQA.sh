@@ -6,8 +6,8 @@ RUN=1
 MERGE=false
 CHECKPOINT=None
 SAVE_DIR=models/OpenBookQA/llama3/few-shot/2-shot_main/
-TRAIN_DATA=data/OpenBookQA/inference/few-shot/2-shot_main_train.jsonl
-EVAL_DATA=data/OpenBookQA/inference/few-shot/2-shot_main_dev_train-LM.jsonl
+TRAIN_DATA=data/OpenBookQA/inference/few-shot/2-shot_main-train.jsonl
+EVAL_DATA=data/OpenBookQA/inference/few-shot/2-shot_main-dev_train-LM.jsonl
 TRAIN_TYPE=CompletionLM
 LM_TOKEN=**Answer:**  # Token to indicate the start of the answer in the training data
 # Hyperparameters
