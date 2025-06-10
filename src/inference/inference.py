@@ -54,7 +54,7 @@ def generate_with_sampling_params(args : argparse.Namespace, dataset : Dataset, 
         top_k = args.top_k,
         top_p = args.top_p,
         max_tokens = args.max_new_tokens,
-        seed = args.random_seed,
+        seed = args.random_seed if args.num_return_sequences == 1 else None,
         n = args.num_return_sequences,
         guided_decoding = decodingParams
     )
@@ -88,7 +88,7 @@ def no_reasoning_OpenBookQA(args : argparse.Namespace, dataset=None):
     outputs = generate_with_sampling_params(args, dataset, GuidedDecodingParams(choice = ['A', 'B', 'C', 'D']))
 
     if args.num_return_sequences > 1:
-        print(f"Since num_return_sequences is set to {args.num_return_sequences}, self-consistency inference will be performed instead of single sequence inference.")
+        print(f"----USER MESSAGE----\nSince num_return_sequences is set to {args.num_return_sequences}, self-consistency inference will be performed instead of single sequence inference.----END----\n")
 
         return self_consistency_inference(outputs)
 
@@ -99,7 +99,7 @@ def CoT_OpenBookQA(args : argparse.Namespace, dataset=None):
     outputs = generate_with_sampling_params(args, dataset, GuidedDecodingParams(regex = r"Let's think step by step: [\s\S]*\n\n\*\*Answer:\*\* [A-D]"))
 
     if args.num_return_sequences > 1:
-        print(f"Since num_return_sequences is set to {args.num_return_sequences}, self-consistency inference will be performed instead of single sequence inference.")
+        print(f"----USER MESSAGE----\nSince num_return_sequences is set to {args.num_return_sequences}, self-consistency inference will be performed instead of single sequence inference.----END----\n")
 
         return self_consistency_inference(outputs)
 

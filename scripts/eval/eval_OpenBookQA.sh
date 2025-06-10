@@ -1,25 +1,25 @@
 #!/bin/bash
 
-PRED_GOLD_OUTPUT_FILES=(
-    
-  "outputs/training/OpenBookQA/llama3/0-shot/training_0-shot_OpenBookQA_llama3_add-dev.jsonl:data/OpenBookQA/processed/add_dev.jsonl:outputs/training/OpenBookQA/llama3/0-shot/"
-  "outputs/training/OpenBookQA/llama3/0-shot/training_0-shot_OpenBookQA_llama3_add-test.jsonl:data/OpenBookQA/processed/add_test.jsonl:outputs/training/OpenBookQA/llama3/0-shot/"
-  "outputs/training/OpenBookQA/llama3/0-shot/training_0-shot_OpenBookQA_llama3_add-train.jsonl:data/OpenBookQA/processed/add_train.jsonl:outputs/training/OpenBookQA/llama3/0-shot/"
-  "outputs/training/OpenBookQA/llama3/0-shot/training_0-shot_OpenBookQA_llama3_main-dev.jsonl:data/OpenBookQA/processed/main_dev.jsonl:outputs/training/OpenBookQA/llama3/0-shot/"
-  "outputs/training/OpenBookQA/llama3/0-shot/training_0-shot_OpenBookQA_llama3_main-test.jsonl:data/OpenBookQA/processed/main_test.jsonl:outputs/training/OpenBookQA/llama3/0-shot/"
-  "outputs/training/OpenBookQA/llama3/0-shot/training_0-shot_OpenBookQA_llama3_main-train.jsonl:data/OpenBookQA/processed/main_train.jsonl:outputs/training/OpenBookQA/llama3/0-shot/"
-  # Add more triplets as needed
+
+# Using glob pattern to match all relevant files in the outputs directory. Can simplify the list or add more patterns as needed.
+RES_FILES=(
+  outputs/no_training/OpenBookQA/llama3/*/*.jsonl
+  training/OpenBookQA/llama3/0-shot/*/*.jsonl
 )
 
 echo -e "-------------------------------"
 echo -e "Running eval for OpenBookQA dataset"
 echo -e "-------------------------------\n"
 
-for triplet in "${PRED_GOLD_OUTPUT_FILES[@]}"; do
-    IFS=":" read -r PREDICTION_FILE GOLD_FILE OUTPUT_DIR <<< $triplet
+for file in "${RES_FILES[@]}"; do
+    IFS=":" read -r PREDICTION_FILE <<< $file
 
-    #--checkpoint "" \
-    #--no_sample \
+    gold_set_name=$(basename "$PREDICTION_FILE" .jsonl | awk -F'_' '{print $NF}')
+
+    # Using the gold_set_name to construct the gold file path. Change as needed.Assuming the gold files end in "...add_dev.jsonl", "...add_test.jsonl", etc.
+    GOLD_FILE="data/OpenBookQA/processed/$gold_set_name"
+    OUTPUT_DIR=$(dirname $PREDICTION_FILE)
+
     python -m src.eval.eval_OpenBookQA \
         --prediction_file $PREDICTION_FILE \
         --gold_file $GOLD_FILE \
