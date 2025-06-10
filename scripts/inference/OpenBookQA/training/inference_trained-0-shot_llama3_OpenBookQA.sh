@@ -1,4 +1,6 @@
+#!/bin/bash
 MODEL=meta-llama/Llama-3.2-3B-Instruct
+CHECKPOINT=models/Baseline-Training/OpenBookQA/llama3/end_model
 #CHECKPOINT= empty, bc 0 shot inference
 DATASET=OpenBookQA 
 
@@ -12,16 +14,16 @@ NUM_RETURN_SEQUENCES=1
 SEED=0
 
 #Ouput Dir
-OUTPUT_DIR=outputs/no_training/OpenBookQA/llama3/0-shot/
+OUTPUT_DIR=outputs/training/OpenBookQA/llama3/0-shot/
 
 # Data Files split by ":" where the first part is the experience name, and the second part is the path to the data file
 DATA_FILES=(
-  "no-training_0-shot_OpenBookQA_llama3_main-train:data/OpenBookQA/inference/0-shot/0-shot_main_train.jsonl"
-  "no-training_0-shot_OpenBookQA_llama3_main-dev:data/OpenBookQA/inference/0-shot/0-shot_main_dev.jsonl"
-  "no-training_0-shot_OpenBookQA_llama3_main-test:data/OpenBookQA/inference/0-shot/0-shot_main_test.jsonl"
-  "no-training_0-shot_OpenBookQA_llama3_add-train:data/OpenBookQA/inference/0-shot/0-shot_add_train.jsonl"
-  "no-training_0-shot_OpenBookQA_llama3_add-dev:data/OpenBookQA/inference/0-shot/0-shot_add_dev.jsonl"
-  "no-training_0-shot_OpenBookQA_llama3_add-test:data/OpenBookQA/inference/0-shot/0-shot_add_test.jsonl"
+  #"training_0-shot_OpenBookQA_llama3_main-train:data/OpenBookQA/inference/0-shot/0-shot_main_train.jsonl"
+  "training_0-shot_OpenBookQA_llama3_main-dev:data/OpenBookQA/inference/0-shot/0-shot_main_dev.jsonl"
+  "training_0-shot_OpenBookQA_llama3_main-test:data/OpenBookQA/inference/0-shot/0-shot_main_test.jsonl"
+  #"training_0-shot_OpenBookQA_llama3_add-train:data/OpenBookQA/inference/0-shot/0-shot_add_train.jsonl"
+  "training_0-shot_OpenBookQA_llama3_add-dev:data/OpenBookQA/inference/0-shot/0-shot_add_dev.jsonl"
+  "training_0-shot_OpenBookQA_llama3_add-test:data/OpenBookQA/inference/0-shot/0-shot_add_test.jsonl"
 )
 
 echo -e "-------------------------------\n"
@@ -36,6 +38,7 @@ for pair in "${DATA_FILES[@]}"; do
     #--no_sample \
     CUDA_VISIBLE_DEVICES=$1 python -m src.inference.inference \
         --model $MODEL\
+        --checkpoint $CHECKPOINT \
         --exp_name $EXP_NAME \
         --dataset $DATASET \
         --data $DATA \

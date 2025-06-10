@@ -30,9 +30,9 @@ messages_add:
     # The placeholders are to be replaced with the actual question and options.
   - role: user
     content: |
-      **Supporting Fact:** {{Support_Fact}}
-
       **Question:** {{Question}}
+
+      **Supporting Fact:** {{Support_Fact}}
 
       **Options:**
       A) {{Option_A}}

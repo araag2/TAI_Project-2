@@ -8,9 +8,11 @@ TASK=yaml_prompt_to_jsonl
 DATASETS=(
   "main_test.jsonl:0-shot_main_test.jsonl"
   "main_dev.jsonl:0-shot_main_dev.jsonl"
+  "main_dev_train-LM.jsonl:0-shot_main_dev_train-LM.jsonl"
   "main_train.jsonl:0-shot_main_train.jsonl"
   "add_test.jsonl:0-shot_add_test.jsonl"
   "add_dev.jsonl:0-shot_add_dev.jsonl"
+  "add_dev_train-LM.jsonl:0-shot_add_dev_train-LM.jsonl"
   "add_train.jsonl:0-shot_add_train.jsonl"
 )
 

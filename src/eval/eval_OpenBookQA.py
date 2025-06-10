@@ -28,22 +28,16 @@ def calc_scores(prediction_file : str, gold_file : str, output_dir : str):
     gold = load_dataset('json', data_files=gold_file, split='train')
 
     # Each answer should be in the form A,B,C or D
-
-    print(preds)
-    quit()
-
-    gold = json.load(open('data/MedNLI/corpus/mednli_test.json'))
-    pred_labels = [PREDS[predictions[key]["Prediction"]] for key in predictions.keys()]
-    gold_labels = [PREDS[gold[key]["Label"]] for key in predictions.keys()]
+    pred_labels = [example["Answer"].strip().upper() for example in preds]
+    gold_labels = [example["Label"].strip().upper() for example in gold]
 
 
-    # F1, Recall, Precision PUBLIC
-    #F1, Rec, Prec = 0, 0, 0
+    # Metrics
     F1_micro, Rec_micro, Prec_micro = F1_Recall_Precision(gold_labels, pred_labels, "micro")
     F1_macro, Rec_macro, Prec_macro = F1_Recall_Precision(gold_labels, pred_labels, "macro")
     F1_weighted, Rec_weighted, Prec_weighted = F1_Recall_Precision(gold_labels, pred_labels, "weighted")
 
-    with safe_open_w(f'{output_dir}SCORES-{predictions_name[:-5]}.md') as f:
+    with safe_open_w(f'{output_dir}SCORES-{prediction_file.split("/")[-1][:-6]}.md') as f:
         print(f'# Full Evaluation Scores\n', file=f)
         print(f'File name: {prediction_file}\n', file=f)
 
@@ -51,7 +45,7 @@ def calc_scores(prediction_file : str, gold_file : str, output_dir : str):
 
         print(f'## Leaderboard Scores\n', file=f)
 
-        print(f'Metrics (%): Accuracy - {Accuracy*100:.1f}', file=f)
+        #print(f'Metrics (%): Accuracy - {Accuracy*100:.1f}', file=f)
 
         print(f'Metrics (%): F1-Score-Micro | Recall-Micro | Precision-Micro | Average-Micro', file=f)
         print(f'                {F1_micro*100:.1f}        {Rec_micro*100:.1f}          {Prec_micro*100:.1f}        {(F1_micro + Rec_micro + Prec_micro) / 3 * 100:.1f}', file=f)
@@ -64,10 +58,10 @@ def calc_scores(prediction_file : str, gold_file : str, output_dir : str):
 
         print(f'\n---\n', file=f)
 
-        if args != None:
-            print(f'## Full Arg List\n', file=f)
-            for arg in vars(args):
-                print(f'{arg} = {getattr(args, arg)}', file=f)
+        #if args != None:
+        #    print(f'## Full Arg List\n', file=f)
+        #    for arg in vars(args):
+        #        print(f'{arg} = {getattr(args, arg)}', file=f)
 
         print(f'\n---\n', file=f)
 

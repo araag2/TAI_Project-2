@@ -11,8 +11,9 @@ from datetime import datetime
 # Model Libs
 from vllm import LLM, SamplingParams
 from vllm.sampling_params import GuidedDecodingParams
-from transformers import AutoTokenizer, set_seed
+from transformers import AutoTokenizer, set_seed, AutoModelForCausalLM
 from datasets import load_dataset
+from peft import PeftModel
 
 def safe_open_w(path: str) -> object:
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -26,6 +27,50 @@ def set_random_seed(random_seed = 0):
         torch.cuda.manual_seed(random_seed)
         torch.cuda.manual_seed_all(random_seed)
 
+def check_merge(args: argparse.Namespace) -> None:
+    """
+    Check if the model is merged or not, by checking if in the checkpoint path there is a file named `pytorch_model.bin`
+    If not, it will merge the model and save it in the checkpoint path.
+    """
+    if os.path.exists(os.path.join(args.checkpoint, "pytorch_model.bin")) or \
+           os.path.exists(os.path.join(args.checkpoint, "model.safetensors")):
+        print(f"✅ Merged model already exists at '{args.checkpoint}'. Skipping merge.")
+    else:
+        print(f"🔄 Merging LoRA from '{args.checkpoint}' into base model '{args.model}'...")
+
+        base_model = AutoModelForCausalLM.from_pretrained(args.model, torch_dtype="auto")
+        model = PeftModel.from_pretrained(base_model, args.checkpoint)
+        model = model.merge_and_unload()  # Merges LoRA into base model
+
+        # Save merged model
+        model.save_pretrained(args.checkpoint)
+        print(f"✅ Merged model saved to '{args.checkpoint}'.")
+    return 
+
+
+def single_sequence_OpenBookQA(args : argparse.Namespace, dataset=None):
+    sampling_config=SamplingParams(
+        temperature = args.temperature,
+        top_k = args.top_k,
+        top_p = args.top_p,
+        max_tokens = args.max_new_tokens,
+        seed = args.random_seed,
+        guided_decoding = GuidedDecodingParams(
+            choice = ['A', 'B', 'C', 'D'])
+    )
+
+    model = LLM(model=args.model if args.checkpoint == "" else args.checkpoint, tokenizer=args.model)
+
+    outputs = model.generate(dataset["messages"], sampling_params=sampling_config)
+
+    return [{'Prompt': output.prompt, 'Answer': output.outputs[0].text} for output in outputs]
+
+def self_consistency_OpenBookQA(args : argparse.Namespace):
+    """
+    Perform self-consistency inference on the OpenBookQA dataset
+    """
+    raise NotImplementedError("Self-consistency inference is not implemented yet.")
+
 def inference_OpenBookQA(args : argparse.Namespace):
     """
     Perform inference on the OpenBookQA dataset
@@ -33,32 +78,17 @@ def inference_OpenBookQA(args : argparse.Namespace):
     dataset = load_dataset('json', data_files=f'{args.data}', split="train")
     tokenizer = AutoTokenizer.from_pretrained(args.model, use_fast=True)
 
-    dataset = dataset.map(lambda x: {"messages": tokenizer.apply_chat_template(x["messages"], 
-                                     tokenize=False, add_generation_prompt=True)})
+    dataset = dataset.map(lambda x: {"messages": tokenizer.apply_chat_template(x["messages"], tokenize=False, add_generation_prompt=True)})
 
-    sampling_config=SamplingParams(
-        temperature=args.temperature,
-        top_k=args.top_k,
-        top_p=args.top_p,
-        max_tokens=args.max_new_tokens,
-        seed= args.random_seed,
-        #num_return_sequences=args.num_return_sequences,
-        guided_decoding= GuidedDecodingParams(
-            choice=['A', 'B', 'C', 'D'])
-            
-        #guided_decoding="regex",
-        #guided_decoding_regex=r"\*\*Answer:\*\* [A-D]"
-    )
-
-    model = LLM(model=args.model)
-
-    outputs = model.generate(dataset["messages"], 
-                            sampling_params=sampling_config
-    )
-
-    print(outputs[0])
-
-    output_res = [{'Prompt': output.prompt, 'Answer': output.outputs[0].text} for output in outputs]
+    match args.inference_type:
+        case 'single_sequence':
+            output_res = single_sequence_OpenBookQA(args, dataset)
+        case 'self-consistency':
+            output_res = self_consistency_OpenBookQA(args, dataset)
+        case 'self-refinement':
+            pass
+        case _:
+            raise ValueError(f"Unknown inference type: {args.inference_type}")
 
     with safe_open_w(f"{args.output_dir}{args.exp_name}.jsonl") as output_file:
         for output in output_res:
@@ -95,7 +125,9 @@ def main():
     parser.add_argument('--temperature', type=float, help='generation param that sets the model stability', default=1)
     parser.add_argument('--top_k', type=int, default=50)
     parser.add_argument('--top_p', type=float, default=0.95)
-    parser.add_argument('--num_return_sequences', type=int, default=1)  
+    parser.add_argument('--num_return_sequences', type=int, default=1)
+
+    parser.add_argument('--inference_type', type=str, help='type of inference to perform', default='single_sequence', choices=['single_sequence', 'self-consistency', 'self-refinement'])  
 
     # Random Seed
     parser.add_argument('--random_seed', type=int, default=0)
@@ -107,19 +139,8 @@ def main():
     # Control Randomness for Reproducibility experiments
     set_random_seed(args.random_seed)
 
-    #model = None
-    #if args.checkpoint != "":
-    #    model = AutoModelForCausalLM.from_pretrained(args.model, device_map= {"": 0}, torch_dtype=torch.bfloat16,attn_implementation="flash_attention_2")
-    #    model = PeftModel.from_pretrained(model, args.checkpoint, device_map= {"": 0}, torch_dtype=torch.bfloat16,attn_implementation="flash_attention_2")
-    #    model = model.merge_and_unload()
-    #    print(f'Merged {args.model=} with {args.checkpoint=}')
-    #
-    #else:
-    #    model = AutoModelForCausalLM.from_pretrained(
-    #        args.model, low_cpu_mem_usage=True,
-    #        return_dict=True, torch_dtype=torch.bfloat16,
-    #        device_map= {"": 0}, attn_implementation="flash_attention_2"
-    #    )
+    if args.checkpoint != "":
+        check_merge(args)
 
     match args.dataset:
         case 'OpenBookQA':

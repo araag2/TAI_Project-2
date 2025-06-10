@@ -1,36 +1,36 @@
 #!/bin/bash
-MODEL_NAME="meta-llama/Llama-3.2-3B-Instruct"
-TOKENIZER_NAME="meta-llama/Llama-3.2-3B-Instruct"
-EXP_NAME="Baseline-Training_0-shot_OpenBookQA_llama3"
+MODEL_NAME=meta-llama/Llama-3.2-3B-Instruct
+TOKENIZER_NAME=meta-llama/Llama-3.2-3B-Instruct
+EXP_NAME=Baseline-Training_2-shot_OpenBookQA_llama3_main
 RUN=1
 MERGE=false
-CHECKPOINT="None"
-SAVE_DIR="models/Baseline-Training/OpenBookQA/llama3/"
-TRAIN_DATA="data/OpenBookQA/inference/0-shot/0-shot_add_train.jsonl"
-EVAL_DATA="data/OpenBookQA/inference/0-shot/0-shot_add_eval.jsonl"
-TRAIN_TYPE="CompletionLM"
-LM_TOKEN="**Answer:**"   # Token to indicate the start of the answer in the training data
+CHECKPOINT=None
+SAVE_DIR=models/Baseline-Training/OpenBookQA/llama3/
+TRAIN_DATA=data/OpenBookQA/inference/few-shot/2-shot_main_train.jsonl
+EVAL_DATA=data/OpenBookQA/inference/few-shot/2-shot_main_dev_train-LM.jsonl
+TRAIN_TYPE=CompletionLM
+LM_TOKEN=**Answer:**  # Token to indicate the start of the answer in the training data
 # Hyperparameters
 MAX_LENGTH=4000
 BATCH_SIZE=1
-POOLING="mean"
+POOLING=mean
 TRAIN_EPOCHS=5
-LR="2e-5"
-WEIGHT_DECAY="0.00"
+LR=2e-5
+WEIGHT_DECAY=0.00
 # Lora Hyperparameters (if you turn on --lora)
 LORA_R=128
-LORA_DROPOUT="0.1"
+LORA_DROPOUT=0.1
 LORA_ALPHA=32
 # Speed & memory optimizations
 GRADIENT_ACCUMULATION_STEPS=4
 # Options (yes/no) for: quant, lora, fp16, gradient_checkpointing
-USE_QUANT="false"
-USE_LORA="true"
-USE_FP16="true"
-USE_GRADIENT_CHECKPOINTING="false"
+USE_QUANT=false
+USE_LORA=true
+USE_FP16=true
+USE_GRADIENT_CHECKPOINTING=false
 
 echo -e "-------------------------------"
-echo -e "Running 0-shot CompletionLM training with file src.training.baseline_training for:"
+echo -e "Running few-shot CompletionLM training with file src.training.baseline_training for:"
 echo -e "  Model      = $MODEL_NAME"
 echo -e "  Train_Data = $TRAIN_DATA"
 echo -e "  Eval_Data  = $EVAL_DATA"

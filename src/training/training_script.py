@@ -15,10 +15,11 @@ from datasets.arrow_dataset import Dataset
 from datasets import load_dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, AutoTokenizer, TrainingArguments
 from peft import LoraConfig, prepare_model_for_kbit_training, get_peft_model, PeftModel
-from trl import SFTTrainer, DataCollatorForCompletionOnlyLM, DPOConfig, DPOTrainer
+from trl import SFTTrainer, DataCollatorForCompletionOnlyLM, DPOConfig, DPOTrainer, apply_chat_template
 
 def completion_LM_training(args, train_dataset, eval_dataset, model, peft_config, tokenizer):
     training_arguments = TrainingArguments(
+        #max_length = args.max_length,
         output_dir = args.save_dir,
         overwrite_output_dir=True,
         eval_strategy="epoch" if eval_dataset else None,
@@ -42,6 +43,8 @@ def completion_LM_training(args, train_dataset, eval_dataset, model, peft_config
         report_to="wandb"
     )
     
+    print(train_dataset)
+
     ## Data collator for completing with "Answer: YES" or "Answer: NO"
     collator = DataCollatorForCompletionOnlyLM(args.LM_Token, tokenizer= tokenizer)
 
@@ -52,11 +55,11 @@ def completion_LM_training(args, train_dataset, eval_dataset, model, peft_config
         train_dataset= train_dataset,
         eval_dataset= eval_dataset,
         peft_config= peft_config,
-        max_seq_length= args.max_length,
-        dataset_text_field= "text",
-        tokenizer= tokenizer,
+        #max_seq_length= args.max_length,
+        #dataset_text_field= "text",
+        #tokenizer= tokenizer,
         args= training_arguments,
-        packing= False,
+        #packing= False,
     )
 
     return trainer
@@ -170,7 +173,7 @@ def create_model_and_tokenizer(args : argparse):
     if peft_config is not None:
         model = get_peft_model(model, peft_config)
 
-    tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name, trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name, trust_remote_code=True, use_fast=True)
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.padding_side = 'right'
 
@@ -190,21 +193,29 @@ def main():
     # Load tokenizer and model
     model, peft_config, tokenizer = create_model_and_tokenizer(args)
 
-    train_dataset = load_dataset('json', data_files=f'{args.train_data}', split="train")
-    train_dataset = train_dataset.map(lambda x: {"messages": tokenizer.apply_chat_template(x["messages"], 
-                                     tokenize=False, add_generation_prompt=True)})
+    def format_dataset(data_file, tokenizer):
+        raw_hf_ds = load_dataset('json', data_files=f'{data_file}', split="train")
 
+        formatted_examples = [
+            apply_chat_template(example, tokenizer=tokenizer)
+            for example in raw_hf_ds
+        ]
 
-    eval_dataset = load_dataset('json', data_files=f'{args.train_data}', split="train") if args.eval_data != "" else None
-    if args.eval_data != "":
-        eval_dataset = eval_dataset.map(lambda x: {"messages": tokenizer.apply_chat_template(x["messages"], 
-                                     tokenize=False, add_generation_prompt=True)})
+        if args.train_type == "CompletionLM":
+            formatted_examples = [{"text" : f'{example["prompt"]}{example["completion"]}'} for example in formatted_examples]
+
+        return Dataset.from_list(formatted_examples)
+
+    train_dataset = format_dataset(args.train_data, tokenizer)
+    eval_dataset = format_dataset(args.eval_data, tokenizer) if args.eval_data != "" else None
+    #train_dataset = load_dataset('json', data_files=f'{args.train_data}', split="train")
+    #eval_dataset = load_dataset('json', data_files=f'{args.eval_data}', split="train") if args.eval_data != "" else None
 
     trainer = None
-    if args.training_type == "CompletionLM":
+    if args.train_type == "CompletionLM":
         trainer = completion_LM_training(args, train_dataset, eval_dataset, model, peft_config, tokenizer)
 
-    elif args.training_type == "DPO":
+    elif args.train_type == "DPO":
         trainer = DPO_training(args, train_dataset, eval_dataset, model, peft_config, tokenizer)
 
     ## Training
