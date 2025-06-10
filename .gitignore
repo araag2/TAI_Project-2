@@ -176,3 +176,12 @@ wandb/
 
 # Project Files
 models/
+data/HotPotQA/source/
+data/HotPotQA/processed/
+data/Medhop/source/
+data/Medhop/processed/
+data/OpenBookQA/source/
+data/OpenBookQA/processed/
+data/OpenBookQA/inference/
+data/Wikihop/source/
+data/Wikihop/processed/
