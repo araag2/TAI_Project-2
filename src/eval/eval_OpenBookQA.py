@@ -28,8 +28,10 @@ def calc_scores(prediction_file : str, gold_file : str, output_dir : str):
     gold = load_dataset('json', data_files=gold_file, split='train')
 
     # Each answer should be in the form A,B,C or D
-    pred_labels = [example["Answer"].strip().upper() for example in preds]
-    gold_labels = [example["Label"].strip().upper() for example in gold]
+    valid_answers = {A, B, C, D} 
+
+    pred_labels = [example["Answer"][-1] if example["Answer"][-1] in valid_answers else raise ValueError("Answer not in Expected Format") for example in preds]
+    gold_labels = [example["Answer"][-1] if example["Answer"][-1] in valid_answers else raise ValueError("Answer not in Expected Format") for example in gold]
 
 
     # Metrics

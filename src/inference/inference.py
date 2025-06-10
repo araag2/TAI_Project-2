@@ -9,10 +9,11 @@ os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 from datetime import datetime
 
 # Model Libs
+from collections import Counter
 from vllm import LLM, SamplingParams
 from vllm.sampling_params import GuidedDecodingParams
 from transformers import AutoTokenizer, set_seed, AutoModelForCausalLM
-from datasets import load_dataset
+from datasets import load_dataset, Dataset
 from peft import PeftModel
 
 def safe_open_w(path: str) -> object:
@@ -47,29 +48,63 @@ def check_merge(args: argparse.Namespace) -> None:
         print(f"✅ Merged model saved to '{args.checkpoint}'.")
     return 
 
-
-def single_sequence_OpenBookQA(args : argparse.Namespace, dataset=None):
+def generate_with_sampling_params(args : argparse.Namespace, dataset : Dataset, decodingParams : GuidedDecodingParams):
     sampling_config=SamplingParams(
         temperature = args.temperature,
         top_k = args.top_k,
         top_p = args.top_p,
         max_tokens = args.max_new_tokens,
         seed = args.random_seed,
-        guided_decoding = GuidedDecodingParams(
-            choice = ['A', 'B', 'C', 'D'])
+        n = args.num_return_sequences,
+        guided_decoding = decodingParams
     )
 
     model = LLM(model=args.model if args.checkpoint == "" else args.checkpoint, tokenizer=args.model)
 
-    outputs = model.generate(dataset["messages"], sampling_params=sampling_config)
+    return model.generate(dataset["messages"], sampling_params=sampling_config)
+
+def self_consistency_inference(outputs : list) -> list:
+    final_outputs = []
+    possible_answers = {'A', 'B', 'C', 'D'}
+
+    for result in outputs:
+        answers = [output.text[-1] if output.text[-1] in possible_answers else ValueError(f"Invalid answer '{output.text[-1]}' in output: {output.text}") for output in result.outputs]
+
+        vote_counts = Counter(answers)
+        most_common = vote_counts.most_common()
+
+        top_choices = [ans for ans, count in most_common if count == most_common[0][1]]
+        final_answer = random.choice(top_choices) # Randomly select among the most common answers
+
+        final_outputs.append({
+            'Prompt': result.prompt,
+            'Answer': final_answer,
+            'Votes': dict(vote_counts)
+        })
+
+    return final_outputs
+
+def no_reasoning_OpenBookQA(args : argparse.Namespace, dataset=None):
+    outputs = generate_with_sampling_params(args, dataset, GuidedDecodingParams(choice = ['A', 'B', 'C', 'D']))
+
+    if args.num_return_sequences > 1:
+        print(f"Since num_return_sequences is set to {args.num_return_sequences}, self-consistency inference will be performed instead of single sequence inference.")
+
+        return self_consistency_inference(outputs)
 
     return [{'Prompt': output.prompt, 'Answer': output.outputs[0].text} for output in outputs]
 
-def self_consistency_OpenBookQA(args : argparse.Namespace):
-    """
-    Perform self-consistency inference on the OpenBookQA dataset
-    """
-    raise NotImplementedError("Self-consistency inference is not implemented yet.")
+
+def CoT_OpenBookQA(args : argparse.Namespace, dataset=None):
+    outputs = generate_with_sampling_params(args, dataset, GuidedDecodingParams(regex = r"Let's think step by step: [\s\S]*\n\n\*\*Answer:\*\* [A-D]"))
+
+    if args.num_return_sequences > 1:
+        print(f"Since num_return_sequences is set to {args.num_return_sequences}, self-consistency inference will be performed instead of single sequence inference.")
+
+        return self_consistency_inference(outputs)
+
+    return [{'Prompt': output.prompt, 'Answer': output.outputs[0].text} for output in outputs]
+
 
 def inference_OpenBookQA(args : argparse.Namespace):
     """
@@ -81,10 +116,10 @@ def inference_OpenBookQA(args : argparse.Namespace):
     dataset = dataset.map(lambda x: {"messages": tokenizer.apply_chat_template(x["messages"], tokenize=False, add_generation_prompt=True)})
 
     match args.inference_type:
-        case 'single_sequence':
-            output_res = single_sequence_OpenBookQA(args, dataset)
-        case 'self-consistency':
-            output_res = self_consistency_OpenBookQA(args, dataset)
+        case 'no_reasoning':
+            output_res = no_reasoning_OpenBookQA(args, dataset)
+        case 'CoT_reasoning':
+            output_res = CoT_OpenBookQA(args, dataset)
         case 'self-refinement':
             pass
         case _:
@@ -127,7 +162,7 @@ def main():
     parser.add_argument('--top_p', type=float, default=0.95)
     parser.add_argument('--num_return_sequences', type=int, default=1)
 
-    parser.add_argument('--inference_type', type=str, help='type of inference to perform', default='single_sequence', choices=['single_sequence', 'self-consistency', 'self-refinement'])  
+    parser.add_argument('--inference_type', type=str, help='type of inference to perform', default='no_reasoning', choices=['no_reasoning', 'CoT_reasoning', 'self-refinement'])  
 
     # Random Seed
     parser.add_argument('--random_seed', type=int, default=0)

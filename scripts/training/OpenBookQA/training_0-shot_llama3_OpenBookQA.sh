@@ -1,13 +1,13 @@
 #!/bin/bash
 MODEL_NAME=meta-llama/Llama-3.2-3B-Instruct
 TOKENIZER_NAME=meta-llama/Llama-3.2-3B-Instruct
-EXP_NAME=Baseline-Training_0-shot_OpenBookQA_llama3_main
-RUN=1
+EXP_NAME=0-shot_OpenBookQA_llama3_add
+RUN=2
 MERGE=false
 CHECKPOINT=None
-SAVE_DIR=models/Baseline-Training/OpenBookQA/llama3/
-TRAIN_DATA=data/OpenBookQA/inference/0-shot/0-shot_main_train.jsonl
-EVAL_DATA=data/OpenBookQA/inference/0-shot/0-shot_main_dev_train-LM.jsonl
+SAVE_DIR=models/OpenBookQA/llama3/0-shot/add/
+TRAIN_DATA=data/OpenBookQA/inference/0-shot/0-shot_add_train.jsonl
+EVAL_DATA=data/OpenBookQA/inference/0-shot/0-shot_add_dev_train-LM.jsonl
 TRAIN_TYPE=CompletionLM
 LM_TOKEN=**Answer:**  # Token to indicate the start of the answer in the training data
 # Hyperparameters
@@ -15,7 +15,7 @@ MAX_LENGTH=4000
 BATCH_SIZE=1
 POOLING=mean
 TRAIN_EPOCHS=5
-LR="2e-5"
+LR=4e-6
 WEIGHT_DECAY=0.00
 # Lora Hyperparameters (if you turn on --lora)
 LORA_R=128
@@ -37,7 +37,7 @@ echo -e "  Eval_Data  = $EVAL_DATA"
 echo -e "  Output Dir = $SAVE_DIR"
 echo -e "-------------------------------"
 
-CUDA_VISIBLE_DEVICES="$1" python -m src.training.training_script \
+CUDA_VISIBLE_DEVICES=$1 python -m src.training.training_script \
     --model_name $MODEL_NAME \
     --tokenizer_name $TOKENIZER_NAME \
     --exp_name $EXP_NAME \

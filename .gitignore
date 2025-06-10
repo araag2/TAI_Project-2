@@ -176,8 +176,8 @@ wandb/
 
 # Project Files
 models/
-data/HotPotQA/source/
-data/HotPotQA/processed/
+data/HotpotQA/source/
+data/HotpotQA/processed/
 data/Medhop/source/
 data/Medhop/processed/
 data/OpenBookQA/source/

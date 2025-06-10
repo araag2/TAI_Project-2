@@ -24,7 +24,7 @@ def completion_LM_training(args, train_dataset, eval_dataset, model, peft_config
         overwrite_output_dir=True,
         eval_strategy="epoch" if eval_dataset else None,
         save_strategy="epoch",
-        save_total_limit= 5,
+        save_total_limit= 3,
         num_train_epochs = args.train_epochs,
         per_device_train_batch_size= args.batch_size,
         optim = "paged_adamw_8bit",
