@@ -85,10 +85,15 @@ def check_if_train_and_format(iter_prompt: typing.List[dict], entry : dict, file
                 "messages": iter_prompt, 
                 "Label": entry["Label"]}
     
-    elif "train" in file_name and iter_prompt[-1]['role'] == 'assistant':
-        return {"id": entry["id"], 
-                "prompt": iter_prompt[:-1], 
-                "completion": [iter_prompt[-1]], 
+    elif "train" in file_name: 
+        if iter_prompt[-1]['role'] == 'assistant':
+            return {"id": entry["id"], 
+                    "prompt": iter_prompt[:-1], 
+                    "completion": [iter_prompt[-1]], 
+                    "Label": entry["Label"]}
+        else:
+            return {"id": entry["id"], 
+                "messages": iter_prompt, 
                 "Label": entry["Label"]}
     else:
         raise ValueError(f"Unexpected format in dataset file: {file_name}")

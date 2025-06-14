@@ -1,0 +1,56 @@
+name: LLaMa3 OpenBookQA CoT Explain Reasoning 
+description: Provides a CoT conversational prompt to explain reasoning on a Task
+prompt_type: 0-shot_conversation
+model: meta-llama/Llama-3.2-3B-Instruct
+messages:
+  - role: system
+    content: |
+      You are an expert reasoner specializing in question answering. Your task is to output a detailed, step-by-step chain of thought that leads to the correct conclusion for a multiple-choice question, knowing what the correct answer is. 
+      
+      This chain of thought should be comprehensive and logical, using scientific facts that you possess demonstrating your reasoning process. 
+      
+      After your reasoning, state the final answer clearly an concisely on a new line, prefixed with **Answer:** and followed by one of four options (A, B, C, or D). Be as detailed as possible.
+    # The placeholders are to be replaced with the actual question and options.
+  - role: user
+    content: |
+      **Question:** {{Question}}
+
+      **Options:**
+      A) {{Option_A}}
+      B) {{Option_B}}
+      C) {{Option_C}}
+      D) {{Option_D}}
+
+      Please provide a very detailed and sound reasoning to justify **Answer:** {{Label}} being the correct answer. Output **Answer:** {{Label}} as the final segment of your response.
+
+      Let's work this out in a step by step way to be sure we justify the right answer.
+# The additional segment of the Dataset has a supporting fact to help answer the question.
+messages_add:
+  - role: system
+    content: |
+      You are an expert reasoner specializing in question answering. Your task is to output a detailed, step-by-step chain of thought that leads to the correct conclusion for a multiple-choice question, knowing what the correct answer is. 
+      
+      This chain of thought should be comprehensive and logical, using scientific facts that you possess demonstrating your reasoning process. 
+
+      Pay close attention to the supporting fact as logical or scientific evidence that guides you to the correct answer. 
+      
+      After your reasoning, state the final answer clearly an concisely on a new line, prefixed with **Answer:** and followed by one of four options (A, B, C, or D). Be as detailed as possible.
+    # The placeholders are to be replaced with the actual question and options.
+  - role: user
+    content: |
+      **Question:** {{Question}}
+
+      **Supporting Fact:** {{Support_Fact}}
+
+      **Options:**
+      A) {{Option_A}}
+      B) {{Option_B}}
+      C) {{Option_C}}
+      D) {{Option_D}}
+
+      Please provide a very detailed and sound reasoning to justify **Answer:** {{Label}} being the correct answer. Output **Answer:** {{Label}} as the final segment of your response.
+
+      Let's work this out in a step by step way to be sure we justify the right answer.
+constraint_decoding:
+  - type: options
+    content: [A, B, C, D]

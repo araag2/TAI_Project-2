@@ -46,6 +46,8 @@ def calc_scores(prediction_file : str, gold_file : str, output_dir : str):
     F1_macro, Rec_macro, Prec_macro = F1_Recall_Precision(gold_labels, pred_labels, "macro")
     F1_weighted, Rec_weighted, Prec_weighted = F1_Recall_Precision(gold_labels, pred_labels, "weighted")
 
+    Accuracy = accuracy_score(gold_labels, pred_labels)
+
     with safe_open_w(f'{output_dir}SCORES-{prediction_file.split("/")[-1][:-6]}.md') as f:
         print(f'# Full Evaluation Scores\n', file=f)
         print(f'File name: {prediction_file}\n', file=f)
@@ -54,7 +56,7 @@ def calc_scores(prediction_file : str, gold_file : str, output_dir : str):
 
         print(f'## Leaderboard Scores\n', file=f)
 
-        #print(f'Metrics (%): Accuracy - {Accuracy*100:.1f}', file=f)
+        print(f'Metrics (%): Accuracy - {Accuracy*100:.1f}', file=f)
 
         print(f'Metrics (%): F1-Score-Micro | Recall-Micro | Precision-Micro | Average-Micro', file=f)
         print(f'                {F1_micro*100:.1f}        {Rec_micro*100:.1f}          {Prec_micro*100:.1f}        {(F1_micro + Rec_micro + Prec_micro) / 3 * 100:.1f}', file=f)

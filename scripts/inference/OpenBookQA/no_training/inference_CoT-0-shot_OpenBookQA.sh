@@ -17,18 +17,21 @@ INFERENCE_TYPE=CoT_reasoning
 OUTPUT_DIR=outputs/no_training/OpenBookQA/llama3/CoT-0-shot/
 
 # Data Files split by ":" where the first part is the experience name, and the second part is the path to the data file
-DATA_FILES=(
-  "no-training_CoT-0-shot_OpenBookQA_llama3_main-dev:data/OpenBookQA/inference/CoT-0-shot/CoT-0-shot_main-dev.jsonl"
-  "no-training_CoT-0-shot_OpenBookQA_llama3_main-test:data/OpenBookQA/inference/CoT-0-shot/CoT-0-shot_main-test.jsonl"
-  "no-training_CoT-0-shot_OpenBookQA_llama3_add-dev:data/OpenBookQA/inference/CoT-0-shot/CoT-0-shot_add-dev.jsonl"
-  "no-training_CoT-0-shot_OpenBookQA_llama3_add-test:data/OpenBookQA/inference/CoT-0-shot/CoT-0-shot_add-test.jsonl"
+DATA_SPLITS=(
+  "main-dev:CoT-0-shot_main-dev"
+  "main-test:CoT-0-shot_main-test"
+  "add-dev:CoT-0-shot_add-dev"
+  "add-test:CoT-0-shot_add-test"
 )
 
 echo -e "-------------------------------\n"
 echo -e "Running CoT-0-shot Inference with file src.inference.inference.py for:\n Dataset = $DATASET\n Model = $MODEL\n Output Dir = $OUTPUT_DIR\n"
 
-for pair in "${DATA_FILES[@]}"; do
-    IFS=":" read -r EXP_NAME DATA <<< $pair
+for pair in "${DATA_SPLITS[@]}"; do
+    IFS=":" read -r data_split data_split_name <<< $pair
+
+    EXP_NAME="no-training_CoT-0-shot_OpenBookQA_llama3_$data_split"
+    DATA="data/OpenBookQA/inference/CoT-0-shot/$data_split_name.jsonl"
 
     echo "Running $EXP_NAME, with data $DATA > outputs in < $OUTPUT_DIR $EXPNAME.jsonl"
 
