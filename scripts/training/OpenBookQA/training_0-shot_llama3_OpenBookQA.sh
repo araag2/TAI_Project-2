@@ -1,11 +1,11 @@
 #!/bin/bash
-MODEL_NAME=meta-llama/Llama-3.2-3B-Instruct
-TOKENIZER_NAME=meta-llama/Llama-3.2-3B-Instruct
-EXP_NAME=0-shot_OpenBookQA_llama3_add
-RUN=2
+MODEL_NAME=mistralai/Mistral-7B-Instruct-v0.3
+TOKENIZER_NAME=mistralai/Mistral-7B-Instruct-v0.3
+EXP_NAME=0-shot_OpenBookQA_Mistral-7B_add
+RUN=1
 MERGE=false
 CHECKPOINT=None
-SAVE_DIR=models/OpenBookQA/llama3/0-shot/add/
+SAVE_DIR=models/OpenBookQA/Mistral-7B/0-shot/add/
 TRAIN_DATA=data/OpenBookQA/inference/0-shot/0-shot_add-train.jsonl
 EVAL_DATA=data/OpenBookQA/inference/0-shot/0-shot_add-dev_train-LM.jsonl
 TRAIN_TYPE=CompletionLM

@@ -4,7 +4,7 @@ DATASET=OpenBookQA
 
 # Generation Params
 BATCH_SIZE=4 # Batch size for inference, doesn't really matter for 0-shot inference
-MAX_NEW_TOKENS=1000 # Max_New_Tokens to generate, doesn't really matter for MCQA without justification
+MAX_NEW_TOKENS=2000 # Max_New_Tokens to generate, doesn't really matter for MCQA without justification
 TEMPERATURE=1
 TOP_K=50
 TOP_P=0.95

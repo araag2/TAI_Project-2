@@ -59,8 +59,19 @@ def generate_with_sampling_params(args : argparse.Namespace, dataset : Dataset, 
         guided_decoding = decodingParams
     )
 
-    model = LLM(model=args.model if args.checkpoint == "" else args.checkpoint, tokenizer=args.model)
+    quant_args = {}
+    if args.quantization_type is not "":
+        quant_args = {
+            "quantization": "bitsandbytes",
+            "dtype": args.quantization_type
+        }
 
+    model = LLM(model=args.model if args.checkpoint == "" else args.checkpoint,
+        tokenizer=args.model, 
+        tokenizer_mode="mistral" if "mistral" in args.model or "mixtral" in args.model else "auto", 
+        **quant_args
+    )
+    
     return model.generate(dataset["messages"], sampling_params=sampling_config)
 
 def self_consistency_inference(outputs : list) -> list:
@@ -68,13 +79,19 @@ def self_consistency_inference(outputs : list) -> list:
     possible_answers = {'A', 'B', 'C', 'D'}
 
     for result in outputs:
-        answers = [output.text[-1] if output.text[-1] in possible_answers else ValueError(f"Invalid answer '{output.text[-1]}' in output: {output.text}") for output in result.outputs]
+        answers = []
+        for output in result.outputs:
+            if output.text[-1] in possible_answers:
+                answers.append(output.text[-1])
 
-        vote_counts = Counter(answers)
-        most_common = vote_counts.most_common()
+        final_answer = random.choice(list(possible_answers)) if not answers else None
 
-        top_choices = [ans for ans, count in most_common if count == most_common[0][1]]
-        final_answer = random.choice(top_choices) # Randomly select among the most common answers
+        if answers:
+            vote_counts = Counter(answers)
+            most_common = vote_counts.most_common()
+
+            top_choices = [ans for ans, count in most_common if count == most_common[0][1]]
+            final_answer = random.choice(top_choices) # Randomly select among the most common answers
 
         final_outputs.append({
             'Prompt': result.prompt,
@@ -161,6 +178,8 @@ def main():
     parser.add_argument('--top_k', type=int, default=50)
     parser.add_argument('--top_p', type=float, default=0.95)
     parser.add_argument('--num_return_sequences', type=int, default=1)
+
+    parser.add_argument('--quantization_type', type=str, help='quantization type to use for the model', default='')
 
     parser.add_argument('--inference_type', type=str, help='type of inference to perform', default='no_reasoning', choices=['no_reasoning', 'CoT_reasoning', 'self-refinement'])  
 

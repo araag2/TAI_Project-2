@@ -154,13 +154,17 @@ def create_model_and_tokenizer(args : argparse):
     model = None
     if args.merge:
         model = AutoModelForCausalLM.from_pretrained(args.model_name, quantization_config= bnb_config, device_map= {"": 0}, torch_dtype=torch.bfloat16,attn_implementation="flash_attention_2")
+        
         model = PeftModel.from_pretrained(model, args.checkpoint, quantization_config= bnb_config, device_map= {"": 0}, torch_dtype=torch.bfloat16,attn_implementation="flash_attention_2")
+
         model = model.merge_and_unload()
+
     else:
        model = AutoModelForCausalLM.from_pretrained(
             args.model_name, low_cpu_mem_usage=True,
             quantization_config= bnb_config,
             return_dict=True, torch_dtype=torch.bfloat16,
+            attn_implementation='eager' if "gemma" in args.model_name else "flash_attention_2",
             device_map= {"": 0}
        )
 

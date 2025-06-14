@@ -67,14 +67,14 @@ def calc_scores(prediction_file : str, gold_file : str, output_dir : str):
         print(f'Metrics (%): F1-Score-Weighted | Recall-Weighted | Precision-Weighted | Average-Weighted', file=f)
         print(f'                {F1_weighted*100:.1f}        {Rec_weighted*100:.1f}          {Prec_weighted*100:.1f}        {(F1_weighted + Rec_weighted + Prec_weighted) / 3 * 100:.1f}', file=f)
 
-        print(f'\n---\n', file=f)
+        #print(f'\n---\n', file=f)
 
         #if args != None:
         #    print(f'## Full Arg List\n', file=f)
         #    for arg in vars(args):
         #        print(f'{arg} = {getattr(args, arg)}', file=f)
 
-        print(f'\n---\n', file=f)
+        #print(f'\n---\n', file=f)
 
 
 def main():
