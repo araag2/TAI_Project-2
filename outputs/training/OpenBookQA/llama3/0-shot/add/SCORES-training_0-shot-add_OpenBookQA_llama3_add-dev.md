@@ -7,6 +7,7 @@ File name: outputs/training/OpenBookQA/llama3/0-shot/add/training_0-shot-add_Ope
 
 ## Leaderboard Scores
 
+Metrics (%): Accuracy - 87.2
 Metrics (%): F1-Score-Micro | Recall-Micro | Precision-Micro | Average-Micro
                 87.2        87.2          87.2        87.2
 Metrics (%): F1-Score-Macro | Recall-Macro | Precision-Macro | Average-Macro

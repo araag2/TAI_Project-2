@@ -7,6 +7,7 @@ File name: outputs/training/OpenBookQA/llama3/few-shot/2-shot_add/training_2-sho
 
 ## Leaderboard Scores
 
+Metrics (%): Accuracy - 35.6
 Metrics (%): F1-Score-Micro | Recall-Micro | Precision-Micro | Average-Micro
                 35.6        35.6          35.6        35.6
 Metrics (%): F1-Score-Macro | Recall-Macro | Precision-Macro | Average-Macro

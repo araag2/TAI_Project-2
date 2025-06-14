@@ -7,6 +7,7 @@ File name: outputs/no_training/OpenBookQA/llama3/0-shot_self-consistency/no-trai
 
 ## Leaderboard Scores
 
+Metrics (%): Accuracy - 80.2
 Metrics (%): F1-Score-Micro | Recall-Micro | Precision-Micro | Average-Micro
                 80.2        80.2          80.2        80.2
 Metrics (%): F1-Score-Macro | Recall-Macro | Precision-Macro | Average-Macro

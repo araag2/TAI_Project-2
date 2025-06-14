@@ -185,3 +185,4 @@ data/OpenBookQA/processed/
 data/OpenBookQA/inference/
 data/Wikihop/source/
 data/Wikihop/processed/
+outputs/*/*/*/*/*.jsonl

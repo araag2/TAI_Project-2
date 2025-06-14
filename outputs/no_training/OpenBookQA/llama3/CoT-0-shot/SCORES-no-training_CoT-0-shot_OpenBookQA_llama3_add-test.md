@@ -7,12 +7,13 @@ File name: outputs/no_training/OpenBookQA/llama3/CoT-0-shot/no-training_CoT-0-sh
 
 ## Leaderboard Scores
 
+Metrics (%): Accuracy - 81.6
 Metrics (%): F1-Score-Micro | Recall-Micro | Precision-Micro | Average-Micro
-                82.2        82.2          82.2        82.2
+                81.6        81.6          81.6        81.6
 Metrics (%): F1-Score-Macro | Recall-Macro | Precision-Macro | Average-Macro
-                82.0        82.2          82.0        82.1
+                81.4        81.6          81.4        81.5
 Metrics (%): F1-Score-Weighted | Recall-Weighted | Precision-Weighted | Average-Weighted
-                82.2        82.2          82.5        82.3
+                81.6        81.6          81.9        81.7
 
 ---
 

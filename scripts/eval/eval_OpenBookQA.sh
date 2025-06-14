@@ -3,7 +3,7 @@
 
 # Using glob pattern to match all relevant files in the outputs directory. Can simplify the list or add more patterns as needed.
 RES_FILES=(
-  outputs/no_training/OpenBookQA/llama3/*/*.jsonl
+  outputs/no_training/OpenBookQA/*/*/*.jsonl
   outputs/training/OpenBookQA/llama3/*/*/*.jsonl
 )
 
