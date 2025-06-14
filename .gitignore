@@ -180,7 +180,7 @@ data/HotpotQA/source/
 data/HotpotQA/processed/
 data/Medhop/source/
 data/Medhop/processed/
-data/OpenBookQA/source/
+#data/OpenBookQA/source/
 data/OpenBookQA/processed/
 data/OpenBookQA/inference/
 data/Wikihop/source/
