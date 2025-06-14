@@ -1,4 +1,4 @@
-MODEL=mistralai/Mistral-7B-Instruct-v0.3
+MODEL=google/gemma-3-4b-it
 #CHECKPOINT= empty, bc 0 shot inference
 DATASET=OpenBookQA 
 
@@ -12,7 +12,7 @@ NUM_RETURN_SEQUENCES=1
 SEED=0
 
 #Ouput Dir
-OUTPUT_DIR=outputs/no_training/OpenBookQA/Mistral-7B/few-shot/
+OUTPUT_DIR=outputs/no_training/OpenBookQA/gemma-4B/few-shot/
 
 # Data Files split by ":" where the first part is the experience name, and the second part is the path to the data file
 DATA_SPLITS=(
@@ -28,7 +28,7 @@ echo -e "Running 2-shot Inference with file src.inference.inference.py for:\n Da
 for pair in "${DATA_SPLITS[@]}"; do
     IFS=":" read -r data_split data_split_name <<< $pair
 
-    EXP_NAME="no-training_2-shot_OpenBookQA_Mistral-7B_$data_split"
+    EXP_NAME="no-training_2-shot_OpenBookQA_gemma-4B_$data_split"
     DATA="data/OpenBookQA/inference/few-shot/$data_split_name.jsonl"
 
     echo "Running $EXP_NAME, with data $DATA > outputs in < $OUTPUT_DIR $EXPNAME.jsonl"
