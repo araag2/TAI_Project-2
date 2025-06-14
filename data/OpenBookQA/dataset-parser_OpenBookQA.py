@@ -165,6 +165,37 @@ def few_shot_conversation_prompt_to_jsonl(loaded_prompt: dict, dataset_file: typ
         for item in populated_prompts:
             f_out.write(json.dumps(item) + "\n")
 
+def multiple_reasoning_chains_prompt_to_jsonl(loaded_prompt: dict, dataset_file: str, output_file: str):
+    with load_dataset("json", data_files=dataset_file, split="train") as dataset:
+        populated_prompts = []
+
+        for entry in dataset:
+            option_prompts = {}
+
+            # Generate a reasoning prompt for each option
+            for label in ['A', 'B', 'C', 'D']:
+                temp_entry = entry.copy()
+                temp_entry["Label"] = label
+                iter_prompt = replace_placeholders(
+                    copy.deepcopy(loaded_prompt)["messages"] if "main" in dataset_file else copy.deepcopy(loaded_prompt)["messages_add"],
+                    temp_entry
+                )
+                option_prompts[label] = iter_prompt
+
+            join_prompt = replace_placeholders(copy.deepcopy(loaded_prompt)["messages_join_answer"], entry)
+
+            # Package up the result
+            populated_prompts.append({
+                "id": entry["id"],
+                "multiple_reasoning_options": option_prompts,
+                "joint_reasoning": join_prompt,
+                "Label": entry["Label"]
+            })
+
+    with safe_open_w(output_file) as f_out:
+        for item in populated_prompts:
+            f_out.write(json.dumps(item) + "\n")
+
 def yaml_prompt_to_jsonl(args : argparse.Namespace):
     loaded_prompt = yaml.safe_load(open(args.prompt, 'r', encoding='utf-8'))
 
@@ -174,6 +205,8 @@ def yaml_prompt_to_jsonl(args : argparse.Namespace):
         case 'few-shot_conversation':
             example_bundles = process_examples(loaded_prompt, args.example_file)
             few_shot_conversation_prompt_to_jsonl(loaded_prompt, args.dataset_file, example_bundles, args.output_file)
+        case 'multiple_reasoning_chains':
+            multiple_reasoning_chains_prompt_to_jsonl(loaded_prompt, args.dataset_file, args.output_file)
         case _:
             raise ValueError(f"Unknown prompt type: {loaded_prompt['prompt_type']}")
 

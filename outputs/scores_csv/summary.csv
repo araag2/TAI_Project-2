@@ -1,0 +1,19 @@
+file_name & Accuracy Main-Dev & Accuracy Add-Dev & Accuracy Main-Test & Accuracy Add-Test
+CoT_gemma-4B & 78.6 & 84.8 & 76.4 & 85.4 \\
+2-shot_gemma-4B & 68.4 & 79.0 & 70.4 & 81.6 \\
+0-shot_gemma-4B & 72.4 & 82.4 & 72.4 & 84.6 \\
+0-shot + SF gemma-4B & 72.0 & 82.4 & 72.0 & 84.8 \\
+2-shot + SF gemma-4B & 68.8 & 78.0 & 70.4 & 80.8 \\
+CoT_llama3 & 71.0 & 80.2 & 69.2 & 81.6 \\
+2-shot_llama3 & 33.0 & 32.8 & 36.2 & 32.6 \\
+0-shot_llama3 & 58.2 & 73.2 & 56.8 & 73.2 \\
+0-shot + SF llama3 & 64.4 & 77.2 & 67.4 & 80.2 \\
+2-shot + SF llama3 & 47.2 & 36.2 & 50.6 & 41.0 \\
+CoT_Mistral-7B & 27.8 & 26.6 & 23.8 & 27.6 \\
+2-shot_Mistral-7B & 25.4 & 26.0 & 27.8 & 27.6 \\
+0-shot_Mistral-7B & 71.4 & 78.8 & 69.6 & 79.2 \\
+0-shot + SF Mistral-7B & 73.6 & 81.4 & 70.6 & 80.4 \\
+2-shot + SF Mistral-7B & 44.0 & 45.0 & 40.0 & 44.6 \\
+training_2-shot-add_llama3 & 35.6 & 34.2 & 39.0 & 36.4 \\
+training_0-shot-add_llama3 & 74.8 & 87.2 & 74.0 & 88.0 \\
+training_0-shot-main_llama3 & 73.4 & 84.4 & 71.2 & 84.0 \\

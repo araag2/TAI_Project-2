@@ -60,14 +60,16 @@ def generate_with_sampling_params(args : argparse.Namespace, dataset : Dataset, 
     )
 
     quant_args = {}
-    if args.quantization_type is not "":
+    if args.quantization_type != "":
         quant_args = {
             "quantization": "bitsandbytes",
-            "dtype": args.quantization_type
+            "dtype": args.quantization_type,
+            "load_format" : "bitsandbytes"
         }
 
     model = LLM(model=args.model if args.checkpoint == "" else args.checkpoint,
-        tokenizer=args.model, 
+        tokenizer=args.model,
+        max_model_len=args.max_new_tokens + 4000, 
         tokenizer_mode="mistral" if "mistral" in args.model or "mixtral" in args.model else "auto", 
         **quant_args
     )
@@ -85,6 +87,7 @@ def self_consistency_inference(outputs : list) -> list:
                 answers.append(output.text[-1])
 
         final_answer = random.choice(list(possible_answers)) if not answers else None
+        vote_counts = None    
 
         if answers:
             vote_counts = Counter(answers)
@@ -96,7 +99,7 @@ def self_consistency_inference(outputs : list) -> list:
         final_outputs.append({
             'Prompt': result.prompt,
             'Answer': final_answer,
-            'Votes': dict(vote_counts)
+            'Votes': dict(vote_counts) if vote_counts else None
         })
 
     return final_outputs
@@ -111,7 +114,6 @@ def no_reasoning_OpenBookQA(args : argparse.Namespace, dataset=None):
 
     return [{'Prompt': output.prompt, 'Answer': output.outputs[0].text} for output in outputs]
 
-
 def CoT_OpenBookQA(args : argparse.Namespace, dataset=None):
     outputs = generate_with_sampling_params(args, dataset, GuidedDecodingParams(regex = r"Let's think step by step: [\s\S]*\n\n\*\*Answer:\*\* [A-D]"))
 
@@ -121,6 +123,40 @@ def CoT_OpenBookQA(args : argparse.Namespace, dataset=None):
         return self_consistency_inference(outputs)
 
     return [{'Prompt': output.prompt, 'Answer': output.outputs[0].text} for output in outputs]
+
+
+def multi_reasoning_OpenBookQA(args : argparse.Namespace, dataset=None, tokenizer=None):
+    reasoning_groups = [[] for _ in range(len(dataset))]
+
+    for choice in ['A', 'B', 'C', 'D']:
+        print(f"Generating reasoning for option {choice}...")
+        
+        guided_params = GuidedDecodingParams(
+            regex=rf"Let's think step by step why {choice} is correct: [\s\S]*\n\n\*\*Answer:\*\* {choice}"
+        )
+
+        # Map dataset[multiple_reasoning_options][choice] to dataset["messages"]
+        dataset = dataset.map(lambda x: {"messages": tokenizer.apply_chat_template(x["multiple_reasoning_options"][choice], tokenize=False, add_generation_prompt=True)})
+
+        outputs = generate_with_sampling_params(args, dataset, guided_params)
+        
+        for i, output in enumerate(outputs):
+            reasoning_groups[i].append((choice, output.outputs[0].text))
+    
+    # Now we have x["joint_reasoning"] for each example in the dataset, and we need to replace the original messages with the joint reasoning, specifically the pairs {{Label_1}} to {{Label_4}} and {{Reasoning_1}} to {{Reasoning_4}}. Preferentially, this should be randomized in each iteration.
+
+    # TO:DO This part is pretty tricky and hacky
+
+    for example_i, reasoning_group in enumerate(reasoning_groups):
+        # Randomly shuffle the reasoning group
+        random.shuffle(reasoning_group)
+
+        for label_num, (label, reasoning) in enumerate(reasoning_group, 1):
+            dataset[example_i]["joint_reasoning"][-1]["content"] = dataset[example_i]["joint_reasoning"][-1]["content"].replace(f"{{{{Label_{label_num}}}}}", label).replace(f"{{{{Reasoning_{label_num}}}}}", reasoning)
+
+    dataset = dataset.map(lambda x: {"messages": tokenizer.apply_chat_template(x["joint_reasoning"], tokenize=False, add_generation_prompt=True)})
+
+    return CoT_OpenBookQA(args, dataset)
 
 
 def inference_OpenBookQA(args : argparse.Namespace):
@@ -137,6 +173,8 @@ def inference_OpenBookQA(args : argparse.Namespace):
             output_res = no_reasoning_OpenBookQA(args, dataset)
         case 'CoT_reasoning':
             output_res = CoT_OpenBookQA(args, dataset)
+        case 'multi_reasoning':
+            output_res = multi_reasoning_OpenBookQA(args, dataset, tokenizer)
         case 'self-refinement':
             pass
         case _:
@@ -181,7 +219,7 @@ def main():
 
     parser.add_argument('--quantization_type', type=str, help='quantization type to use for the model', default='')
 
-    parser.add_argument('--inference_type', type=str, help='type of inference to perform', default='no_reasoning', choices=['no_reasoning', 'CoT_reasoning', 'self-refinement'])  
+    parser.add_argument('--inference_type', type=str, help='type of inference to perform', default='no_reasoning', choices=['no_reasoning', 'CoT_reasoning', 'self-refinement','multi_reasoning'])  
 
     # Random Seed
     parser.add_argument('--random_seed', type=int, default=0)

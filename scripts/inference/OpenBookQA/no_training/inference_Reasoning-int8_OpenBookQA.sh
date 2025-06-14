@@ -1,9 +1,9 @@
-MODEL=mistralai/Mistral-7B-Instruct-v0.3
+MODEL=fluently-lm/FluentlyLM-Prinum
 #CHECKPOINT= empty, bc 0 shot inference
 DATASET=OpenBookQA 
 
 # Generation Params
-BATCH_SIZE=4 # Batch size for inference, doesn't really matter for 0-shot inference
+BATCH_SIZE=1 # Batch size for inference, doesn't really matter for 0-shot inference
 MAX_NEW_TOKENS=2000 # Max_New_Tokens to generate, doesn't really matter for MCQA without justification
 TEMPERATURE=1
 TOP_K=50
@@ -11,18 +11,16 @@ TOP_P=0.95
 NUM_RETURN_SEQUENCES=1
 SEED=0
 
-QUANTIZATION_TYPE=int8
+QUANTIZATION_TYPE=half
 INFERENCE_TYPE=CoT_reasoning
 
 #Ouput Dir
-OUTPUT_DIR=outputs/no_training/OpenBookQA/Mistral-7B/CoT-0-shot/
+OUTPUT_DIR=outputs/no_training/OpenBookQA/Fluently/Reasoning/
 
 # Data Files split by ":" where the first part is the experience name, and the second part is the path to the data file
 DATA_SPLITS=(
-  "main-dev:CoT-0-shot_main-dev"
-  "main-test:CoT-0-shot_main-test"
-  "add-dev:CoT-0-shot_add-dev"
-  "add-test:CoT-0-shot_add-test"
+  "main-train:Train-Reasoning_main-train"
+  "add-train:Train-Reasoning_add-train"
 )
 
 echo -e "-------------------------------\n"
@@ -31,8 +29,8 @@ echo -e "Running CoT-0-shot Inference with file src.inference.inference.py for:\
 for pair in "${DATA_SPLITS[@]}"; do
     IFS=":" read -r data_split data_split_name <<< $pair
 
-    EXP_NAME="no-training_CoT-0-shot_OpenBookQA_Mistral-7B_$data_split"
-    DATA="data/OpenBookQA/inference/CoT-0-shot/$data_split_name.jsonl"
+    EXP_NAME="no-training_CoT-0-shot_OpenBookQA_Fluently_$data_split"
+    DATA="data/OpenBookQA/inference/Reasoning/$data_split_name.jsonl"
 
     echo "Running $EXP_NAME, with data $DATA > outputs in < $OUTPUT_DIR $EXPNAME.jsonl"
 
