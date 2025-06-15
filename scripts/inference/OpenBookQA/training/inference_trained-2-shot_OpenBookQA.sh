@@ -1,37 +1,37 @@
-MODEL=mistralai/Mistral-7B-Instruct-v0.3
+#!/bin/bash
+MODEL=meta-llama/Llama-3.2-3B-Instruct
+CHECKPOINT=models/OpenBookQA/llama3/0-shot/add/end_model/
 #CHECKPOINT= empty, bc 0 shot inference
 DATASET=OpenBookQA 
 
 # Generation Params
-BATCH_SIZE=1 # Batch size for inference, doesn't really matter for 0-shot inference
-MAX_NEW_TOKENS=2000 # Max_New_Tokens to generate, doesn't really matter for MCQA without justification
-TEMPERATURE=1.2
+BATCH_SIZE=8 # Batch size for inference, doesn't really matter for 0-shot inference
+MAX_NEW_TOKENS=10 # Max_New_Tokens to generate, doesn't really matter for MCQA without justification
+TEMPERATURE=1
 TOP_K=50
-TOP_P=0.9
-NUM_RETURN_SEQUENCES=10
+TOP_P=0.95
+NUM_RETURN_SEQUENCES=1
 SEED=0
 
-INFERENCE_TYPE=CoT_reasoning
-
 #Ouput Dir
-OUTPUT_DIR=outputs/no_training/OpenBookQA/Mistral-7B/CoT-0-shot_self-consistency/
+OUTPUT_DIR=outputs/training/OpenBookQA/llama3/add_0-shot_training/2-shot/
 
 # Data Files split by ":" where the first part is the experience name, and the second part is the path to the data file
 DATA_SPLITS=(
-  #"main-dev:CoT-0-shot_main-dev"
-  #"main-test:CoT-0-shot_main-test"
-  #"add-dev:CoT-0-shot_add-dev"
-  "add-test:CoT-0-shot_add-test"
+  "main-dev:2-shot_main-dev"
+  "main-test:2-shot_main-test"
+  "add-dev:2-shot_add-dev"
+  "add-test:2-shot_add-test"
 )
 
 echo -e "-------------------------------\n"
-echo -e "Running CoT-0-shot Self-Consistency Inference with file src.inference.inference.py for:\n Dataset = $DATASET\n Model = $MODEL\n Output Dir = $OUTPUT_DIR\n"
+echo -e "Running Trained add_0-shot 2-shot with file src.inference.inference.py for:\n Dataset = $DATASET\n Model = $MODEL\n Output Dir =$OUTPUT_DIR\n"
 
 for pair in "${DATA_SPLITS[@]}"; do
     IFS=":" read -r data_split data_split_name <<< $pair
 
-    EXP_NAME="no-training_CoT-0-shot_self-consistency_OpenBookQA_Mistral-7B_$data_split"
-    DATA="data/OpenBookQA/inference/CoT-0-shot/$data_split_name.jsonl"
+    EXP_NAME="training_add_0-shot_2-shot_OpenBookQA_llama3_$data_split"
+    DATA="data/OpenBookQA/inference/few-shot/$data_split_name.jsonl"
 
     echo "Running $EXP_NAME, with data $DATA > outputs in < $OUTPUT_DIR $EXPNAME.jsonl"
 
@@ -39,6 +39,7 @@ for pair in "${DATA_SPLITS[@]}"; do
     #--no_sample \
     CUDA_VISIBLE_DEVICES=$1 python -m src.inference.inference \
         --model $MODEL\
+        --checkpoint $CHECKPOINT \
         --exp_name $EXP_NAME \
         --dataset $DATASET \
         --data $DATA \
@@ -48,7 +49,6 @@ for pair in "${DATA_SPLITS[@]}"; do
         --top_k $TOP_K \
         --top_p $TOP_P \
         --num_return_sequences $NUM_RETURN_SEQUENCES \
-        --inference_type $INFERENCE_TYPE \
         --random_seed $SEED \
         --output_dir $OUTPUT_DIR
 

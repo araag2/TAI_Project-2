@@ -7,30 +7,31 @@ DATASET=OpenBookQA
 # Generation Params
 BATCH_SIZE=8 # Batch size for inference, doesn't really matter for 0-shot inference
 MAX_NEW_TOKENS=10 # Max_New_Tokens to generate, doesn't really matter for MCQA without justification
-TEMPERATURE=1
+TEMPERATURE=1.2 
 TOP_K=50
-TOP_P=0.95
-NUM_RETURN_SEQUENCES=1
+TOP_P=0.9
+NUM_RETURN_SEQUENCES=10
 SEED=0
 
 #Ouput Dir
-OUTPUT_DIR=outputs/training/OpenBookQA/llama3/0-shot/add/
+OUTPUT_DIR=outputs/training/OpenBookQA/llama3/add_0-shot_training/0-shot_self-consistency/
 
 # Data Files split by ":" where the first part is the experience name, and the second part is the path to the data file
-DATA_FILES=(
-  #"training_0-shot_OpenBookQA_llama3_main-train:data/OpenBookQA/inference/0-shot/0-shot_main-train.jsonl"
-  "training_0-shot-add_OpenBookQA_llama3_main-dev:data/OpenBookQA/inference/0-shot/0-shot_main-dev.jsonl"
-  "training_0-shot-add_OpenBookQA_llama3_main-test:data/OpenBookQA/inference/0-shot/0-shot_main-test.jsonl"
-  #"training_0-shot_OpenBookQA_llama3_add-train:data/OpenBookQA/inference/0-shot/0-shot_add-train.jsonl"
-  "training_0-shot-add_OpenBookQA_llama3_add-dev:data/OpenBookQA/inference/0-shot/0-shot_add-dev.jsonl"
-  "training_0-shot-add_OpenBookQA_llama3_add-test:data/OpenBookQA/inference/0-shot/0-shot_add-test.jsonl"
+DATA_SPLITS=(
+  "main-dev:0-shot_main-dev"
+  "main-test:0-shot_main-test"
+  "add-dev:0-shot_add-dev"
+  "add-test:0-shot_add-test"
 )
 
 echo -e "-------------------------------\n"
-echo -e "Running 0-shot Inference with file src.inference.inference.py for:\n Dataset = $DATASET\n Model = $MODEL\n Output Dir =$OUTPUT_DIR\n"
+echo -e "Running Trained add_0-shot 0-shot_self-consistency Inference with file src.inference.inference.py for:\n Dataset = $DATASET\n Model = $MODEL\n Output Dir =$OUTPUT_DIR\n"
 
-for pair in "${DATA_FILES[@]}"; do
-    IFS=":" read -r EXP_NAME DATA <<< $pair
+for pair in "${DATA_SPLITS[@]}"; do
+    IFS=":" read -r data_split data_split_name <<< $pair
+
+    EXP_NAME="training_add_0-shot_0-shot_self-consistency_OpenBookQA_llama3_$data_split"
+    DATA="data/OpenBookQA/inference/0-shot/$data_split_name.jsonl"
 
     echo "Running $EXP_NAME, with data $DATA > outputs in < $OUTPUT_DIR $EXPNAME.jsonl"
 

@@ -6,8 +6,12 @@ TASK=yaml_prompt_to_jsonl
 
 # Data Files split by ":" where the first part is the dataset file and the second part is the output file
 DATASETS=(
-  "main-train.jsonl:Train-Multiple-Reasoning-Chains_main-train.jsonl"
-  "add-train.jsonl:Train-Multiple-Reasoning-Chains_add-train.jsonl"
+  "main-test.jsonl:Multiple-Reasoning-Chains_main-test.jsonl"
+  "main-dev.jsonl:Multiple-Reasoning-Chains_main-dev.jsonl"
+  "add-test.jsonl:Multiple-Reasoning-Chains_add-test.jsonl"
+  "add-dev.jsonl:Multiple-Reasoning-Chains_add-dev.jsonl"
+  "main-train.jsonl:Multiple-Reasoning-Chains_main-train.jsonl"
+  "add-train.jsonl:Multiple-Reasoning-Chains_add-train.jsonl"
 )
 
 for pair in "${DATASETS[@]}"; do

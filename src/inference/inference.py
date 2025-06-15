@@ -60,6 +60,7 @@ def generate_with_sampling_params(args : argparse.Namespace, dataset : Dataset, 
     )
 
     quant_args = {}
+
     if args.quantization_type != "":
         quant_args = {
             "quantization": "bitsandbytes",
@@ -125,37 +126,57 @@ def CoT_OpenBookQA(args : argparse.Namespace, dataset=None):
     return [{'Prompt': output.prompt, 'Answer': output.outputs[0].text} for output in outputs]
 
 
-def multi_reasoning_OpenBookQA(args : argparse.Namespace, dataset=None, tokenizer=None):
-    reasoning_groups = [[] for _ in range(len(dataset))]
+def multi_reasoning_OpenBookQA(args, dataset=None, tokenizer=None):
+    # Add index for tracking
+    dataset = dataset.add_column("example_idx", list(range(len(dataset))))
+    reasoning_groups = {i: [] for i in range(len(dataset))}
 
+    # Generate reasoning for each choice and collect outputs
     for choice in ['A', 'B', 'C', 'D']:
         print(f"Generating reasoning for option {choice}...")
-        
+
         guided_params = GuidedDecodingParams(
             regex=rf"Let's think step by step why {choice} is correct: [\s\S]*\n\n\*\*Answer:\*\* {choice}"
         )
 
-        # Map dataset[multiple_reasoning_options][choice] to dataset["messages"]
-        dataset = dataset.map(lambda x: {"messages": tokenizer.apply_chat_template(x["multiple_reasoning_options"][choice], tokenize=False, add_generation_prompt=True)})
+        def prepare_choice_prompt(example):
+            return {
+                "messages": tokenizer.apply_chat_template(
+                    example["multiple_reasoning_options"][choice],
+                    tokenize=False,
+                    add_generation_prompt=True
+                )
+            }
 
-        outputs = generate_with_sampling_params(args, dataset, guided_params)
-        
+        dataset_choice = dataset.map(prepare_choice_prompt)
+        outputs = generate_with_sampling_params(args, dataset_choice, guided_params)
+
         for i, output in enumerate(outputs):
-            reasoning_groups[i].append((choice, output.outputs[0].text))
-    
-    # Now we have x["joint_reasoning"] for each example in the dataset, and we need to replace the original messages with the joint reasoning, specifically the pairs {{Label_1}} to {{Label_4}} and {{Reasoning_1}} to {{Reasoning_4}}. Preferentially, this should be randomized in each iteration.
+            idx = dataset_choice[i].get("example_idx", i)
+            reasoning_groups[idx].append((choice, output.outputs[0].text))
 
-    # TO:DO This part is pretty tricky and hacky
+    # Fill joint reasoning for each example
+    def fill_joint_reasoning(example):
+        idx = example.get("example_idx", None)
+        group = reasoning_groups.get(idx, [])
+        random.shuffle(group)
 
-    for example_i, reasoning_group in enumerate(reasoning_groups):
-        # Randomly shuffle the reasoning group
-        random.shuffle(reasoning_group)
+        joint_text = example["joint_reasoning"][-1]["content"]
+        for label_num, (label, reasoning) in enumerate(group, 1):
+            joint_text = joint_text.replace(f"{{{{Label_{label_num}}}}}", label)
+            joint_text = joint_text.replace(f"{{{{Reasoning_{label_num}}}}}", reasoning)
 
-        for label_num, (label, reasoning) in enumerate(reasoning_group, 1):
-            dataset[example_i]["joint_reasoning"][-1]["content"] = dataset[example_i]["joint_reasoning"][-1]["content"].replace(f"{{{{Label_{label_num}}}}}", label).replace(f"{{{{Reasoning_{label_num}}}}}", reasoning)
+        new_messages = example["joint_reasoning"][:-1] + [
+            {
+                "role": example["joint_reasoning"][-1]["role"],
+                "content": joint_text
+            }
+        ]
+        return {"messages": tokenizer.apply_chat_template(
+            new_messages, tokenize=False, add_generation_prompt=True
+        )}
 
-    dataset = dataset.map(lambda x: {"messages": tokenizer.apply_chat_template(x["joint_reasoning"], tokenize=False, add_generation_prompt=True)})
-
+    dataset = dataset.map(fill_joint_reasoning, batched=False)
     return CoT_OpenBookQA(args, dataset)
 
 
@@ -166,7 +187,8 @@ def inference_OpenBookQA(args : argparse.Namespace):
     dataset = load_dataset('json', data_files=f'{args.data}', split="train")
     tokenizer = AutoTokenizer.from_pretrained(args.model, use_fast=True)
 
-    dataset = dataset.map(lambda x: {"messages": tokenizer.apply_chat_template(x["messages"], tokenize=False, add_generation_prompt=True)})
+    if "messages" in dataset.column_names:
+        dataset = dataset.map(lambda x: {"messages": tokenizer.apply_chat_template(x["messages"], tokenize=False, add_generation_prompt=True)})
 
     match args.inference_type:
         case 'no_reasoning':
@@ -219,7 +241,7 @@ def main():
 
     parser.add_argument('--quantization_type', type=str, help='quantization type to use for the model', default='')
 
-    parser.add_argument('--inference_type', type=str, help='type of inference to perform', default='no_reasoning', choices=['no_reasoning', 'CoT_reasoning', 'self-refinement','multi_reasoning'])  
+    parser.add_argument('--inference_type', type=str, help='type of inference to perform', default='no_reasoning', choices=['no_reasoning', 'CoT_reasoning', 'multi_reasoning'])  
 
     # Random Seed
     parser.add_argument('--random_seed', type=int, default=0)
