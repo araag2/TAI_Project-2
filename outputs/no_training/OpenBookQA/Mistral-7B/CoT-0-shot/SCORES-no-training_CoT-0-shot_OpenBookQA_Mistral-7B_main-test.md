@@ -7,16 +7,10 @@ File name: outputs/no_training/OpenBookQA/Mistral-7B/CoT-0-shot/no-training_CoT-
 
 ## Leaderboard Scores
 
-Metrics (%): Accuracy - 23.8
+Metrics (%): Accuracy - 25.2
 Metrics (%): F1-Score-Micro | Recall-Micro | Precision-Micro | Average-Micro
-                23.8        23.8          23.8        23.8
+                25.2        25.2          25.2        25.2
 Metrics (%): F1-Score-Macro | Recall-Macro | Precision-Macro | Average-Macro
-                23.7        23.9          23.7        23.8
+                24.9        25.0          24.8        24.9
 Metrics (%): F1-Score-Weighted | Recall-Weighted | Precision-Weighted | Average-Weighted
-                23.8        23.8          23.9        23.8
-
----
-
-
----
-
+                25.1        25.2          25.1        25.1

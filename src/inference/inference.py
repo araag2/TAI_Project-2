@@ -185,6 +185,11 @@ def inference_OpenBookQA(args : argparse.Namespace):
     Perform inference on the OpenBookQA dataset
     """
     dataset = load_dataset('json', data_files=f'{args.data}', split="train")
+
+    #tokenizer = None
+    #if args.checkpoint != "" and os.path.exists(os.path.join(args.checkpoint, "tokenizer_config.json")):
+    #    tokenizer = AutoTokenizer.from_pretrained(args.checkpoint, use_fast=True)
+    #else:
     tokenizer = AutoTokenizer.from_pretrained(args.model, use_fast=True)
 
     if "messages" in dataset.column_names:

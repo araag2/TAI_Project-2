@@ -14,9 +14,3 @@ Metrics (%): F1-Score-Macro | Recall-Macro | Precision-Macro | Average-Macro
                 73.4        72.4          81.6        75.8
 Metrics (%): F1-Score-Weighted | Recall-Weighted | Precision-Weighted | Average-Weighted
                 73.3        73.2          80.7        75.7
-
----
-
-
----
-

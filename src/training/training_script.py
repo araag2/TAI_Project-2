@@ -68,7 +68,7 @@ def regular_LM_training(args, train_dataset, eval_dataset, model, peft_config, t
     training_arguments = TrainingArguments(
         output_dir = args.save_dir,
         overwrite_output_dir=True,
-        evaluation_strategy="epoch" if eval_dataset else "no",
+        eval_strategy="epoch" if eval_dataset else "no",
         save_strategy="epoch",
         save_total_limit=3,
         num_train_epochs=args.train_epochs,

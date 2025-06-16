@@ -1,6 +1,6 @@
 #!/bin/bash
 MODEL=meta-llama/Llama-3.2-3B-Instruct
-CHECKPOINT=models/OpenBookQA/llama3/0-shot/add/end_model/
+CHECKPOINT=models/OpenBookQA/llama3/Reasoning-CoT/add/end_model/
 #CHECKPOINT= empty, bc 0 shot inference
 DATASET=OpenBookQA 
 
@@ -16,7 +16,7 @@ SEED=0
 INFERENCE_TYPE=CoT_reasoning
 
 #Ouput Dir
-OUTPUT_DIR=outputs/training/OpenBookQA/llama3/add_0-shot_training/CoT-0-shot_self-consistency/
+OUTPUT_DIR=outputs/training/OpenBookQA/llama3/add_CoT-Qwen-Train/CoT-0-shot_self-consistency/
 
 # Data Files split by ":" where the first part is the experience name, and the second part is the path to the data file
 DATA_SPLITS=(
