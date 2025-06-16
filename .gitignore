@@ -186,3 +186,4 @@ data/OpenBookQA/inference/
 data/Wikihop/source/
 data/Wikihop/processed/
 outputs/*/*/*/*/*.jsonl
+outputs/training/*/*/*/*/*.jsonl

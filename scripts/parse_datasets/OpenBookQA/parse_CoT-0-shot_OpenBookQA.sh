@@ -10,6 +10,8 @@ DATASETS=(
   "main-dev.jsonl:CoT-0-shot_main-dev.jsonl"
   "add-test.jsonl:CoT-0-shot_add-test.jsonl"
   "add-dev.jsonl:CoT-0-shot_add-dev.jsonl"
+  "main-train.jsonl:CoT-0-shot_main-train.jsonl"
+  "add-train.jsonl:CoT-0-shot_add-train.jsonl"
 )
 
 for pair in "${DATASETS[@]}"; do

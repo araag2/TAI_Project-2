@@ -34,7 +34,7 @@ def check_merge(args: argparse.Namespace) -> None:
     If not, it will merge the model and save it in the checkpoint path.
     """
     if os.path.exists(os.path.join(args.checkpoint, "pytorch_model.bin")) or \
-           os.path.exists(os.path.join(args.checkpoint, "model.safetensors")):
+           os.path.exists(os.path.join(args.checkpoint, "model.safetensors.index.json")):
         print(f"✅ Merged model already exists at '{args.checkpoint}'. Skipping merge.")
     else:
         print(f"🔄 Merging LoRA from '{args.checkpoint}' into base model '{args.model}'...")

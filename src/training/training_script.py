@@ -13,7 +13,7 @@ from datasets.arrow_dataset import Dataset
 
 # Model Libs
 from datasets import load_dataset
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, AutoTokenizer, TrainingArguments
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, AutoTokenizer, TrainingArguments, DataCollatorForLanguageModeling
 from peft import LoraConfig, prepare_model_for_kbit_training, get_peft_model, PeftModel
 from trl import SFTTrainer, DataCollatorForCompletionOnlyLM, DPOConfig, DPOTrainer, apply_chat_template
 
@@ -64,6 +64,45 @@ def completion_LM_training(args, train_dataset, eval_dataset, model, peft_config
 
     return trainer
 
+def regular_LM_training(args, train_dataset, eval_dataset, model, peft_config, tokenizer):
+    training_arguments = TrainingArguments(
+        output_dir = args.save_dir,
+        overwrite_output_dir=True,
+        evaluation_strategy="epoch" if eval_dataset else "no",
+        save_strategy="epoch",
+        save_total_limit=3,
+        num_train_epochs=args.train_epochs,
+        per_device_train_batch_size=args.batch_size,
+        optim="paged_adamw_8bit",
+        logging_steps=25,
+        learning_rate=args.lr,
+        weight_decay=args.weight_decay,
+        bf16=False,
+        group_by_length=True,
+        lr_scheduler_type="constant",
+        load_best_model_at_end=True if eval_dataset else False,
+        gradient_accumulation_steps=args.gradient_accumulation_steps,
+        gradient_checkpointing=args.gradient_checkpointing,
+        fp16=args.fp16,
+        report_to="wandb"
+    )
+
+    collator = DataCollatorForLanguageModeling(
+        tokenizer=tokenizer,
+        mlm=False  # Since it's a causal LM
+    )
+
+    trainer = SFTTrainer(
+        model=model,
+        data_collator=collator,
+        train_dataset=train_dataset,
+        eval_dataset=eval_dataset,
+        peft_config=peft_config,
+        args=training_arguments,
+    )
+
+    return trainer
+
 def DPO_training(args, train_dataset, eval_dataset, model, peft_config, tokenizer):
     pass
 
@@ -87,7 +126,7 @@ def parse_args():
     parser.add_argument("--train_data", default="", type=str)
     parser.add_argument("--eval_data", default="", type=str)
 
-    parser.add_argument("--train_type", default="CompletionLM", type=str, help="type of training", choices = ["CompletionLM", "DPO"])
+    parser.add_argument("--train_type", default="CompletionLM", type=str, help="type of training", choices = ["CompletionLM", "RegularLM", "DPO"])
 
     # Data collator parameters
     parser.add_argument("--LM_Token", default="Answer:", type=str, help="Token to complete from")
@@ -205,7 +244,7 @@ def main():
             for example in raw_hf_ds
         ]
 
-        if args.train_type == "CompletionLM":
+        if args.train_type == "CompletionLM" or args.train_type == "RegularLM":
             formatted_examples = [{"text" : f'{example["prompt"]}{example["completion"]}'} for example in formatted_examples]
 
         return Dataset.from_list(formatted_examples)
@@ -218,6 +257,9 @@ def main():
     trainer = None
     if args.train_type == "CompletionLM":
         trainer = completion_LM_training(args, train_dataset, eval_dataset, model, peft_config, tokenizer)
+
+    elif args.train_type == "RegularLM":
+        trainer = regular_LM_training(args, train_dataset, eval_dataset, model, peft_config, tokenizer)
 
     elif args.train_type == "DPO":
         trainer = DPO_training(args, train_dataset, eval_dataset, model, peft_config, tokenizer)
